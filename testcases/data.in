@@ -1,0 +1,3 @@
+add_user -u aaa -p bbb -n xxx -m abc@abc.com -g 123
+login -u aaa -p bbb
+logout -u aaa
