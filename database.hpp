@@ -18,7 +18,7 @@ public:
     }
 
     int executeTrans(std::string exec) {
-        std::cout << "EXECUTING: " << exec << std::endl;
+        // std::cout << "EXECUTING: " << exec << std::endl;
         try {
             pqxx::work W(*conn);
             W.exec(exec);
@@ -31,7 +31,7 @@ public:
     }
 
     std::pair<int, pqxx::result> executeNonTrans(std::string exec) {
-        std::cout << "EXECUTING: " << exec << std::endl;
+        // std::cout << "EXECUTING: " << exec << std::endl;
         pqxx::result R;
         try{
             pqxx::nontransaction N(*conn);

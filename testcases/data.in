@@ -1,3 +1,10 @@
-add_user -u aaa -p bbb -n xxx -m abc@abc.com -g 123
+add_user -u aaa -p bbb -n xxx -m abc@abc.com -g 5
 login -u aaa -p bbb
+add_user -c aaa -u gabriel -p tangze -n nnn -m abc@sjtu.com -g 4
+login -u gabriel -p tangze
+query_profile -c gabriel -u gabriel
+modify_profile -c aaa -u gabriel -n yyy -m xxx@pornhub.com
+query_profile -c aaa -u gabriel
 logout -u aaa
+logout -u gabriel
+logout -u gabriel

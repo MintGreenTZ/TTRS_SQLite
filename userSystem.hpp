@@ -33,6 +33,29 @@ private:
         return curUsers.find(username) != curUsers.end();
     }
 
+private:
+    std::pair<int, pqxx::result> getProfile(std::string username) {
+        std::ostringstream q; 
+        q << "SELECT * FROM " << tableName << " WHERE username = \'" << username << "\';";
+        auto ret = c -> executeNonTrans(q.str());
+        auto suc = ret.first;
+        auto content = ret.second;
+        if (suc == -1 || content.size() != 1) return std::make_pair(-1, content);
+        else return std::make_pair(0, content);
+    }
+
+    int getPrivilege(std::string username) {
+        auto t = getProfile(username);
+        return t.first == -1 ? -1 : t.second[0][corres["privilege"]].as<int>();
+    }
+
+    std::string toString(pqxx::result::tuple t) {
+        std::ostringstream q; 
+        q << t[corres["username"]].as<std::string>() << " " << t[corres["name"]].as<std::string>() << " "
+          << t[corres["mailAddr"]].as<std::string>() << " " << t[corres["privilege"]].as<int>();
+        return q.str();
+    }
+
 public:
     userSystem(database *_c, std::string _tableName) : c(_c), tableName(_tableName) {
         init = checkFirst();        
@@ -45,25 +68,22 @@ public:
         c -> executeTrans(sql);
     }
 
-    int addUser(std::string username, std::string password, std::string name, std::string mailAddr, std::string priority) {
-        //TODO: 当前用户权限
+    int addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege) {
+        if (!init && getPrivilege(cusername) < std::stoi(privilege)) return -1;
         std::ostringstream q; 
         q << "INSERT INTO " << tableName << " (username,password,name,mailAddr,privilege) "
-            << "VALUES (\'" << username << "\', \'" << password << "\', \'" << name << "\', \'" << mailAddr << "\', " << priority
-            << ");" ;
+            << "VALUES (\'" << username << "\', \'" << password << "\', \'" << name << "\', \'" << mailAddr << "\', " << privilege
+            << ");";
+        init = false;
         return c -> executeTrans(q.str());
     }
 
     int login(std::string username, std::string password) {
-        std::ostringstream q; 
-        q << "SELECT * FROM " << tableName << " WHERE username = \'" << username << "\';";
-        auto ret = c -> executeNonTrans(q.str());
-        auto suc = ret.first;
-        if (suc == -1) return -1;
-        auto content = ret.second;
-        if (content.size() != 1) return -1;
+        auto t = getProfile(username);
+        if (t.first == -1) return -1;
 
-        auto ans = content[0][corres["password"]].as<std::string>();
+        auto content = t.second[0];
+        auto ans = content[corres["password"]].as<std::string>();
         if (ans == password) {
             addUser(username);
             return 0;
@@ -77,5 +97,33 @@ public:
             return 0;
         }
         return -1;
+    }
+
+    std::pair<int, std::string> query_profile(std::string cusername, std::string username) {
+        if (!checkUser(cusername)) return std::make_pair(-1, "");
+        if (getPrivilege(cusername) < getPrivilege(username)) return std::make_pair(-1, "");
+
+        auto t = getProfile(username);
+        if (t.first == -1) return std::make_pair(-1, "");
+        return std::make_pair(0, toString(t.second[0]));
+    }
+
+    std::pair<int, std::string> modify_profile(std::string cusername, std::string username, 
+                std::string password, std::string name, std::string mailAddr, std::string privilege) {
+        if (!checkUser(cusername)) return std::make_pair(-1, "");
+        if (getPrivilege(cusername) < getPrivilege(username)) return std::make_pair(-1, "");
+
+        std::vector<std::string> v;
+        if (password != "") v.push_back("password = \'" + password + "\'");
+        if (name != "") v.push_back("name = \'" + name + "\'");
+        if (mailAddr != "") v.push_back("mailAddr = \'" + mailAddr + "\'");
+        if (privilege != "") v.push_back("privilege = " + privilege);
+        std::string s;
+        for (auto it = v.begin(); it != v.end(); it++) s += (it != v.begin() ? ", " : "") + *it;
+
+        std::ostringstream q; 
+        q << "UPDATE " << tableName << " SET " << s << " WHERE username = \'" << username << "\';";
+        c -> executeTrans(q.str());
+        return query_profile(cusername, username);
     }
 };
