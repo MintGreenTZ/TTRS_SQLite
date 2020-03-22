@@ -58,7 +58,7 @@ private:
 
 public:
     userSystem(database *_c, std::string _tableName) : c(_c), tableName(_tableName) {
-        init = checkFirst();        
+        init = checkFirst();
         std::string sql = "CREATE TABLE IF NOT EXISTS usertable(" \
             "username varchar(255) PRIMARY KEY," \
             "password varchar(255)," \

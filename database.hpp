@@ -14,7 +14,7 @@ public:
             std::cout << "Opened database successfully: " << conn -> dbname() << std::endl;
         } else {
             std::cout << "Can't open database" << std::endl;
-      }
+		}
     }
 
     int executeTrans(std::string exec) {
