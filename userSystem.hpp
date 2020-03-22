@@ -16,7 +16,7 @@ private:
 
 private:
     bool checkFirst() {
-        std::string q = "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE table_name = \'" + tableName + "\'";
+        std::string q = "select true from " + tableName + " limit 1;";
         auto ret = c -> executeNonTrans(q);
         return ret.second.size() == 0;
     }
@@ -58,7 +58,6 @@ private:
 
 public:
     userSystem(database *_c, std::string _tableName) : c(_c), tableName(_tableName) {
-        init = checkFirst();        
         std::string sql = "CREATE TABLE IF NOT EXISTS usertable(" \
             "username varchar(255) PRIMARY KEY," \
             "password varchar(255)," \
@@ -66,6 +65,7 @@ public:
             "mailAddr varchar(255)," \
             "privilege int ); ";
         c -> executeTrans(sql);
+        init = checkFirst();        
     }
 
     int addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege) {
