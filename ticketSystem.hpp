@@ -5,10 +5,10 @@
 #include "querySystem.hpp"
 
 class ticketSystem {
+public:
+	static std::map<std::string, int> corres;
+
 private:
-	std::map<std::string, int> corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
-		{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
-		{"saleDate", 8}, {"type", 9}, {"released", 10}};
 	enum status{
 		success, pending, refunded
 	};

@@ -44,6 +44,6 @@ public:
     }
 
     ~database() {
-        conn -> disconnect();
+        // conn -> disconnect();
     }
 };

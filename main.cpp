@@ -12,6 +12,14 @@ std::map<std::string, int> CMDID = { {"add_user", 1}, {"login", 2}, {"logout", 3
 									 {"query_order", 13}, {"refund_ticket", 14},
 									 {"clean", 15}, {"exit", 16} };
 
+std::map<std::string, int> userSystem::corres =  { {"username", 0}, {"password", 1}, {"name", 2}, {"mailAddr", 3}, {"privilege", 4} };
+std::map<std::string, int> trainSystem::corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
+	{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
+	{"saleDate", 8}, {"type", 9}, {"released", 10}};
+std::map<std::string, int> ticketSystem::corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
+	{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
+	{"saleDate", 8}, {"type", 9}, {"released", 10}};
+	
 // Compiler command : g++ main.cpp -lpqxx -lpq -o main
 int main() {
     freopen("./testcases/dataTrain.in", "r", stdin);

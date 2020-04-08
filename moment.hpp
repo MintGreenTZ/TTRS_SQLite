@@ -1,6 +1,10 @@
+#pragma once
+
 #include <string>
 
 class moment {
+	friend class querySystem;
+
 private:
 	int month, day, hour, minute;
 

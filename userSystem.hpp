@@ -6,9 +6,10 @@
 #include <pqxx/pqxx>
 
 class userSystem {
+public:
+    static std::map<std::string, int> corres;
+    
 private:
-    std::map<std::string, int> corres =  { {"username", 0}, {"password", 1}, {"name", 2}, {"mailAddr", 3}, {"privilege", 4} };
-
     database *c;
     std::string tableName;
     std::set<std::string> curUsers;
@@ -58,10 +59,6 @@ private:
 
 public:
     userSystem(database *_c, std::string _tableName) : c(_c), tableName(_tableName) {
-<<<<<<< HEAD
-        init = checkFirst();
-=======
->>>>>>> 59595b247df3e184269d8d1c5e0ec88c041de49f
         std::string sql = "CREATE TABLE IF NOT EXISTS usertable(" \
             "username varchar(255) PRIMARY KEY," \
             "password varchar(255)," \

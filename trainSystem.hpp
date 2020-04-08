@@ -1,3 +1,5 @@
+#pragma once
+
 #include <iostream>
 #include <sstream>
 #include <map>
@@ -7,15 +9,13 @@
 #include "querySystem.hpp"
 
 class trainSystem {
-private:
-	std::map<std::string, int> corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
-		{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
-		{"saleDate", 8}, {"type", 9}, {"released", 10}};
+public:
+	static std::map<std::string, int> corres;
 	
 	database *c;
 	std::string tableName;
 	querySystem *query;
-private:
+public:
 	std::pair<int, pqxx::result> getTrainInfo(std::string trainID) {
 		std::ostringstream q;
 		q << "SELECT * FROM " << tableName << " WHERE trainID = \'" << trainID << "\';";
@@ -110,4 +110,6 @@ public:
 		q << "DELETE FROM " << tableName << " WHERE trainID = \'" << trainID << "\';";
 		return c -> executeTrans(q.str());
 	}
+
+	std::vector<std::string> findTrainId(std::string city);
 };
