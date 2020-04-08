@@ -18,8 +18,9 @@ int main() {
 
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
-	trainSystem *train = new trainSystem(db, "traintable");
-	//ticketSystem *ticket = new ticketSystem(db, "tickettable");
+    querySystem *query = new querySystem(db, "querytable");
+	trainSystem *train = new trainSystem(db, "traintable", query);
+	ticketSystem *ticket = new ticketSystem(db, "tickettable", query);
 	
     std::string c;
     while (getline(std::cin, c)) {
@@ -68,6 +69,26 @@ int main() {
 				break;
 			case 9: //delete_train
 				ret = train -> delete_train(args["i"]);
+				std::cout << ret << std::endl;
+				break;
+			case 10: //query_ticket
+				res = query -> query_ticket(args["s"], args["t"], args["d"]);
+				std::cout << res.second << std::endl;
+				break;
+			case 11: //query_transfer
+				res = query -> query_ticket(args["s"], args["t"], args["d"]);
+				std::cout << res.second << std::endl;
+				break;
+			case 12: //buy_ticket
+				ret = ticket -> buy_ticket(args["u"], args["i"], args["d"], args["n"], args["f"], args["t"], args["q"]);
+				std::cout << ret << std::endl;
+				break;
+			case 13: //query_order
+				res = ticket -> query_order(args["u"]);
+				std::cout << res.second << std::endl;
+				break;
+			case 14: //refund_ticket
+				ret = ticket -> refund_ticket(args["u"], args["n"]);
 				std::cout << ret << std::endl;
 				break;
             default:

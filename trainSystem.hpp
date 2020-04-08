@@ -4,6 +4,7 @@
 #include <pqxx/pqxx>
 #include "arrayParser.hpp"
 #include "moment.hpp"
+#include "querySystem.hpp"
 
 class trainSystem {
 private:
@@ -13,6 +14,7 @@ private:
 	
 	database *c;
 	std::string tableName;
+	querySystem *query;
 private:
 	std::pair<int, pqxx::result> getTrainInfo(std::string trainID) {
 		std::ostringstream q;
@@ -26,7 +28,8 @@ private:
 			return std::make_pair(0, content);
 	}
 public:
-	trainSystem(database *_c, std::string _tableName) : c(_c), tableName(_tableName) {
+	trainSystem(database *_c, std::string _tableName, querySystem *_query) :
+			c(_c), tableName(_tableName), query(_query) {
 		std::string sql = "CREATE TABLE IF NOT EXISTS traintable("
 			"trainID varchar(255) PRIMARY KEY,"
 			"stationNum int,"
@@ -94,7 +97,10 @@ public:
 		if (info.first == -1 || info.second[0][corres["released"]].as<bool>() == true) return -1;
 		std::ostringstream q;
 		q << "UPDATE " << tableName << " SET released = true WHERE trainID = \'" << trainID << "\';";
-		c -> executeTrans(q.str());
+		int ret = c -> executeTrans(q.str());
+		if (ret == 0)
+			query -> init_ticket(trainID, saleDate, stationNum);
+		return ret;
 	}
 	
 	int delete_train(std::string trainID) {
