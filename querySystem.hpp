@@ -4,7 +4,7 @@
 #include <pqxx/pqxx>
 #include <moment>
 
-class ticketSystem {
+class querySystem {
 public:
 	//saleDate eg. 06-01|08-17, success ensured
 	void init_ticket (std::string trainID, std::string saleDate, std::string stationNum) {
