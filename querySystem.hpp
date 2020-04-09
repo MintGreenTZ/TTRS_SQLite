@@ -53,7 +53,7 @@ public:
 		c -> executeTrans(sql.str());  
 	}
 	
-	//void add_ticket(std::string trainId, std::string date, std::string num, std::string FROM, std::string TO)
+	//void add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO)
 	void add_ticket(std::string trainId, std::string date, std::string station) {
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
@@ -72,7 +72,8 @@ public:
 
 	// return value: (<price>, "queue") or (-1, "") or (<price>, "")
 	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
-			std::string num, std::string FROM, std::string TO, std::string queue = "false") {
+			std::string str_num, std::string FROM, std::string TO, std::string queue = "false") {
+		int num = std::atoi(str_num);
 		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
