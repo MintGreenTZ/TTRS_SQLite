@@ -16,9 +16,9 @@ std::map<std::string, int> userSystem::corres =  { {"username", 0}, {"password",
 std::map<std::string, int> trainSystem::corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
 	{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
 	{"saleDate", 8}, {"type", 9}, {"released", 10}};
-std::map<std::string, int> ticketSystem::corres = {{"trainID", 0}, {"stationNum", 1}, {"stations", 2},
-	{"seatNum", 3}, {"prices", 4}, {"startTime", 5}, {"travelTimes", 6}, {"stopoverTimes", 7},
-	{"saleDate", 8}, {"type", 9}, {"released", 10}};
+std::map<std::string, int> ticketSystem::corres = {{"userName", 0}, {"orderCnt", 1}, {"status", 2},
+	{"trainID", 3}, {"FROM", 4}, {"LEAVING_TIME", 5}, {"TO", 6}, {"ARRIVING_TIME", 7},
+	{"price", 8}, {"num", 9}};
 	
 // Compiler command : g++ main.cpp -lpqxx -lpq -o main
 int main() {
@@ -28,7 +28,7 @@ int main() {
     userSystem *user = new userSystem(db, "usertable");
     querySystem *query = new querySystem(db, "querytable");
 	trainSystem *train = new trainSystem(db, "traintable", query);
-	ticketSystem *ticket = new ticketSystem(db, "tickettable", query);
+	ticketSystem *ticket = new ticketSystem(db, "tickettable", query, train);
 	
     std::string c;
     while (getline(std::cin, c)) {
@@ -89,7 +89,7 @@ int main() {
 				break;
 			case 12: //buy_ticket
 				ret = ticket -> buy_ticket(args["u"], args["i"], args["d"], args["n"], args["f"], args["t"], args["q"]);
-				std::cout << ret << std::endl;
+				std::cout << ret == -2 ? "queue" : ret << std::endl;
 				break;
 			case 13: //query_order
 				res = ticket -> query_order(args["u"]);

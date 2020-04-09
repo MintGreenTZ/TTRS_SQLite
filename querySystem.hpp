@@ -53,6 +53,7 @@ public:
 		c -> executeTrans(sql.str());  
 	}
 	
+	//void add_ticket(std::string trainId, std::string date, std::string num, std::string FROM, std::string TO)
 	void add_ticket(std::string trainId, std::string date, std::string station) {
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
@@ -69,9 +70,9 @@ public:
 		}
 	}
 
-	// return value: (-1, "queue") or (-1, "") or (<price>, "")
+	// return value: (<price>, "queue") or (-1, "") or (<price>, "")
 	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
-			std::string FROM, std::string TO, std::string queue = "false") {
+			std::string num, std::string FROM, std::string TO, std::string queue = "false") {
 		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
@@ -93,8 +94,8 @@ public:
 		}
 		if (s == -1 || t == -1) return std::make_pair(-1, "");
 		int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
-		if (rem > 0) return std::make_pair(price, "");
-		else return std::make_pair(-1, queue == "false" ? "queue" : "");
+		if (rem >= num) return std::make_pair(price * num, "");
+		else return std::make_pair(queue == "true" ? price * num : -1, queue == "true" ? "queue" : "");
 	}
 
 private:
