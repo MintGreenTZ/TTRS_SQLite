@@ -4,7 +4,9 @@
 #include <sstream>
 #include <map>
 #include <pqxx/pqxx>
+#include <algorithm>
 #include "moment.hpp"
+#include "userSystem.hpp"
 #include "trainSystem.hpp"
 #include "ticketSystem.hpp"
 #include "database.hpp"
@@ -14,6 +16,7 @@
 
 class querySystem {	
 private:
+	userSystem *usersys;
 	ticketSystem *ticketsys;
 	trainSystem *trainsys;
 	database *c;
@@ -28,7 +31,7 @@ private:
 	}
 
 public:
-	querySystem(/*ticketSystem *_ticketsys, trainSystem *_trainsys, */ database *_c) : /*ticketsys(_ticketsys), trainsys(_trainsys),*/ c(_c) {
+	querySystem(ticketSystem *_ticketsys, trainSystem *_trainsys, userSystem *_usersys, database *_c) : ticketsys(_ticketsys), trainsys(_trainsys), usersys(_usersys), c(_c) {
 		std::string sql = "CREATE TABLE IF NOT EXISTS ticketInfo(" \
 			"trainID varchar(255) PRIMARY KEY," \
 			"ticketNum integer[][] );";
@@ -67,12 +70,34 @@ public:
 	}
 
 	// return value: (-1, "queue") or (-1, "") or (<price>, "")
-	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainID, std::string date,
+	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
 			std::string FROM, std::string TO, std::string queue = "false") {
-		//TODO
+		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
+		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
+		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
+		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
+		auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
+		auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+		auto prices = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+
+		int s = -1, t = -1, price = 0;
+		moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
+		for (int i = 0; i < stations.size(); i++) {
+			if (stations[i] == FROM) s = i, price = 0;
+			if (stations[i] == TO) {
+				t = i;
+				break;
+			}
+			price += i < 1 ? 0 : prices[i - 1];
+			if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
+		}
+		if (s == -1 || t == -1) return std::make_pair(-1, "");
+		int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+		if (rem > 0) return std::make_pair(price, "");
+		else return std::make_pair(-1, queue == "false" ? "queue" : "");
 	}
 
-public:
+private:
 	std::vector<int> parseTicket(pqxx::result t) {
 		std::vector<int> ticket;
 		auto parser = t[0][0].as_array();
@@ -97,10 +122,9 @@ public:
 
 public:
 	//int is useless, just put all the output in string
-	std::pair<int, std::string> query_ticket(std::string start, std::string end, std::string date, std::string mode) {
+	std::pair<int, std::string> query_ticket(std::string start, std::string end, std::string date, std::string mode = "cost", bool bestOnly = false) {
 		auto trainIds = intersection(trainsys -> findTrainId(start), trainsys -> findTrainId(end));
-		int cnt = 0;
-		std::ostringstream tmp;
+		std::vector<std::pair<int, std::string>> allTrain;
 
 		for (auto trainId: trainIds) {
 			auto info = (trainsys -> getTrainInfo(trainId)).second[0];
@@ -111,11 +135,14 @@ public:
 			auto prices = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
 
 			moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
-			moment curMax(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
+			moment curMax(sale[1], info[trainSystem::corres["startTime"]].as<std::string>());
 			moment *t1, *t2;
 
 			int price = 0, t1s, t2s;
 			for (int i = 0; i < stations.size(); i++) {
+				curMin += travelTimes[i];
+				curMax += travelTimes[i];
+
 				price += i < 1 ? 0 : prices[i - 1];
 				if (stations[i] == end) {
 					t2 = &curMin;
@@ -127,26 +154,98 @@ public:
 					t1s = i;
 					price = 0;
 				}
-				curMin += travelTimes[i] + stopOverTimes[i];
-				curMax += travelTimes[i] + stopOverTimes[i];
+
+				curMin += stopOverTimes[i];
+				curMax += stopOverTimes[i];
 			}
 			int daysElapsed = moment(date, "xx:xx").day - curMin.day;			
 			if (moment(date, "xx:xx").day >= curMin.day && moment(date, "xx:xx").day <= curMax.day) {
 				//transform to requesting day
 				t1->day += daysElapsed;
 				t2->day += daysElapsed;
-				cnt++;
 				int ticketNum = getMinTicket(trainId, daysElapsed, t1s, t2s);
+				std::ostringstream tmp;
 				tmp << trainId << " " << start << " " << t1->toString() << "->" << end << " " << t2->toString << " " << price << " " << ticketNum << "\n";
+				allTrain.push_back(std::make_pair(mode == "cost" ? price : curMin.toInt(), tmp.str()));
 			}
 		}
-		std::ostringstream ret;
-		ret << cnt << "\n" << tmp.str();
-		return std::make_pair(0, ret.str());
+		sort(allTrain.begin(), allTrain.end());
+		if (!bestOnly) {
+			std::ostringstream ret;
+			ret << allTrain.size() << "\n";
+			for (auto t: allTrain) ret << t.second << "\n";
+			return std::make_pair(0, ret.str());
+		} else {
+			return std::make_pair(0, allTrain[0].second);
+		}
 	}
 	
+private:
+	std::pair<std::vector<std::string>, std::vector<int>> getAllStationFrom(std::vector<std::string> trains, std::string start) {
+		std::vector<std::string> ret1;
+		std::vector<int> ret2;
+		for (auto trainId: trains) {
+			auto info = (trainsys -> getTrainInfo(trainId)).second[0];
+			auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
+			auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
+			auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+
+			bool flg = false;
+			int cost = 0;
+			for (int i = 0; i < stations.size(); i++) {
+				cost += travelTimes[i];
+				if (flg) {
+					ret1.push_back(stations[i]);
+					ret2.push_back(cost);
+				}
+				if (stations[i] == start) flg = true;
+				cost += stopOverTimes[i];
+			}
+		}
+		return std::make_pair(ret1, ret2);
+	}
+
+	std::pair<std::vector<std::string>, std::vector<int>> getAllStationUntil(std::vector<std::string> trains, std::string end) {
+		std::vector<std::string> ret1;
+		std::vector<int> ret2;
+		for (auto trainId: trains) {
+			auto info = (trainsys -> getTrainInfo(trainId)).second[0];
+			auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
+			auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
+			auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+
+			bool flg = false;
+			int cost = 0;
+			for (int i = stations.size() - 1; i >= 0; i--) {
+				if (flg) {
+					cost += travelTimes[i];
+					ret1.push_back(stations[i]);
+					ret2.push_back(cost);
+					cost += stopOverTimes[i];
+				}
+				if (stations[i] == end) flg = true;
+			}
+		}
+		return std::make_pair(ret1, ret2);
+	}
+
+public:
 	//int is useless, just put all the output in string
 	std::pair<int, std::string> query_transfer(std::string start, std::string end, std::string date, std::string mode) {
-		//TODO
+		auto s1 = getAllStationFrom(trainsys -> findTrainId(start), start);
+		auto s2 = getAllStationUntil(trainsys -> findTrainId(end), end);
+		auto common = intersection(s1.first, s2.first);
+		int minCost = INT_MAX;
+		std::string minStation;
+		for (auto t: common) {
+			int cur = s1.second[std::find(s1.first.begin(), s1.first.end(), t) - s1.first.begin()] + s2.second[std::find(s2.first.begin(), s2.first.end(), t) - s2.first.begin()];
+			if (cur < minCost) {
+				minCost = cur;
+				minStation = t;
+			}
+		}
+		auto ret1 = query_ticket(start, minStation, date, "time", true);
+		auto ret2 = query_ticket(minStation, end, date, "time", true);
+		return std::make_pair(0, ret1.second + "\n" + ret2.second);
 	}
 };

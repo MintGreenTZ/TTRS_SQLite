@@ -17,6 +17,7 @@ private:
 	}
 public:
 	static const int duration[13];
+	static const int durationSum[13];
 	static const std::string emptyMoment;
 
 	moment(std::string date, std::string time) {
@@ -31,6 +32,10 @@ public:
 
 	std::string toString() {
 		return twoBit(month) + "-" + twoBit(day) + " " + twoBit(hour) + ":" + twoBit(minute);
+	}
+
+	int toInt() {
+		return (durationSum[month] + day) * 1440 + hour * 60 + minute;
 	}
 
 	moment operator +(int dminute) {
@@ -61,5 +66,7 @@ public:
 };
 
 const int moment::duration[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+const int moment::durationSum[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
+
 const std::string moment::emptyMoment = "xx-xx xx:xx";
 

@@ -6,6 +6,8 @@
 #include <pqxx/pqxx>
 
 class userSystem {
+    friend class querySystem;
+
 public:
     static std::map<std::string, int> corres;
     
@@ -50,10 +52,10 @@ private:
         return t.first == -1 ? -1 : t.second[0][corres["privilege"]].as<int>();
     }
 
-    std::string toString(pqxx::result::tuple t) {
+    std::string toString(pqxx::result t) {
         std::ostringstream q; 
-        q << t[corres["username"]].as<std::string>() << " " << t[corres["name"]].as<std::string>() << " "
-          << t[corres["mailAddr"]].as<std::string>() << " " << t[corres["privilege"]].as<int>();
+        q << t[0][corres["username"]].as<std::string>() << " " << t[0][corres["name"]].as<std::string>() << " "
+          << t[0][corres["mailAddr"]].as<std::string>() << " " << t[0][corres["privilege"]].as<int>();
         return q.str();
     }
 
@@ -106,7 +108,7 @@ public:
 
         auto t = getProfile(username);
         if (t.first == -1) return std::make_pair(-1, "");
-        return std::make_pair(0, toString(t.second[0]));
+        return std::make_pair(0, toString(t.second));
     }
 
     std::pair<int, std::string> modify_profile(std::string cusername, std::string username, 
