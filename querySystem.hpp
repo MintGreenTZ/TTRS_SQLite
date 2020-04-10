@@ -71,7 +71,7 @@ public:
 
 	// return value: (-1, "queue") or (-1, "") or (<price>, "")
 	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
-			std::string FROM, std::string TO, std::string queue = "false") {
+			std::string FROM, std::string TO, int buyNum, std::string queue = "false") {
 		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
@@ -92,8 +92,18 @@ public:
 			if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
 		}
 		if (s == -1 || t == -1) return std::make_pair(-1, "");
+		s++, t++;
 		int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
-		if (rem > 0) return std::make_pair(price, "");
+		if (rem >= buyNum) {
+			auto ticket = getTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+			std::ostringstream sql;
+			sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").day - curMin.day + 1 << ":" << moment(date,"xx:xx").day - curMin.day + 1
+				<< "][" << s << ":" << t << "]=\'{";
+			for (int i = s; i <= t; i++) sql << ticket[i] - buyNum << (i != t ? "," : "");
+			sql << "}\';";
+			c -> executeTrans(sql.str()); 
+			return std::make_pair(price, "");
+		}
 		else return std::make_pair(-1, queue == "false" ? "queue" : "");
 	}
 
@@ -108,6 +118,13 @@ private:
 			}
 			obj = parser.get_next();
 		}
+		return ticket;
+	}
+
+	std::vector<int> getTicket(std::string trainId, int day, int s, int t) {
+		std::ostringstream sql;
+		sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
+		auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
 		return ticket;
 	}
 
@@ -163,6 +180,7 @@ public:
 				//transform to requesting day
 				t1->day += daysElapsed;
 				t2->day += daysElapsed;
+				t1s++, t2s++;
 				int ticketNum = getMinTicket(trainId, daysElapsed, t1s, t2s);
 				std::ostringstream tmp;
 				tmp << trainId << " " << start << " " << t1->toString() << "->" << end << " " << t2->toString << " " << price << " " << ticketNum << "\n";
