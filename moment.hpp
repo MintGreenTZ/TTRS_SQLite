@@ -35,7 +35,7 @@ public:
 	}
 
 	int toInt() {
-		return (durationSum[month] + day) * 1440 + hour * 60 + minute;
+		return (durationSum[month - 1] + (day - 1)) * 1440 + hour * 60 + minute;
 	}
 
 	moment operator +(int dminute) {
