@@ -53,7 +53,34 @@ public:
 		c -> executeTrans(sql.str());  
 	}
 	
-	//void add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO)
+	void add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO) {
+		int num = std::atoi(str_num);
+		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
+		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
+		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
+		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
+		auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
+		auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+		int s = -1, t = -1, price = 0;
+		moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
+		for (int i = 0; i < stations.size(); i++) {
+			if (stations[i] == FROM) s = i, price = 0;
+			if (stations[i] == TO) {
+				t = i;
+				break;
+			}
+			if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
+		}
+		s++, t++;
+		auto ticket = getTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+		std::ostringstream sql;
+		sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").day - curMin.day + 1 << ":" << moment(date,"xx:xx").day - curMin.day + 1
+			<< "][" << s << ":" << t << "]=\'{";
+		for (int i = s; i <= t; i++) sql << ticket[i] + num << (i != t ? "," : "");
+		sql << "}\';";
+		c -> executeTrans(sql.str()); 
+	}
+
 	void add_ticket(std::string trainId, std::string date, std::string station) {
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
