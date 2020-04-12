@@ -1,0 +1,14 @@
+add_train -i HAPPY_TRAIN -n 3 -m 1000 -s up|mid|down -p 115|514 -x 19:19 -t 600|600 -o 5 -d 06-01|08-17 -y G
+add_train -i SAD_TRAIN -n 4 -m 1000 -s e_up|e_mid|mid|e_down -p 123|233|666 -x 20:20 -t 120|60|60 -o 5|5 -d 06-01|08-20 -y Z
+add_user -u aaa -p bbb -n xxx -m abc@abc.com -g 5
+login -u aaa -p bbb
+add_user -c aaa -u gabriel -p tangze -n nnn -m abc@sjtu.com -g 4
+login -u gabriel -p tangze
+buy_ticket -u aaa -i SAD_TRAIN -d 08-17 -n 800 -f e_up -t mid
+buy_ticket -u gabriel -i SAD_TRAIN -d 08-17 -n 400 -f e_mid -t e_down
+buy_ticket -u gabriel -i SAD_TRAIN -d 08-17 -n 200 -f e_mid -t e_down
+query_order -u aaa
+query_order -u gabriel
+refund_ticket -u aaa -n 1
+query_order -u aaa
+query_order -u gabriel
