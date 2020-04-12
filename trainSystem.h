@@ -6,7 +6,7 @@
 #include <pqxx/pqxx>
 #include "arrayParser.hpp"
 #include "moment.hpp"
-#include "querySystem.hpp"
+#include "querySystem.h"
 
 class querySystem;
 
@@ -20,8 +20,7 @@ private:
 public:
 	std::pair<int, pqxx::result> getTrainInfo(std::string trainID);
 public:
-	trainSystem(database *_c, std::string _tableName, querySystem *_query) :
-			c(_c), city2trainID(_c), tableName(_tableName), query(_query);
+	trainSystem(database *_c, std::string _tableName, querySystem *_query);
 
 	int add_train(std::string trainID, std::string stationNum, std::string seatNum, std::string stations, 
 				std::string prices, std::string startTime, std::string travelTimes, 

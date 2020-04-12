@@ -34,8 +34,7 @@ private:
 
 	bool checkFirst();
 public:
-	ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train) :
-			c(_c), cnt(_c), tableName(_tableName), query(_query), train(_train);
+	ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train);
 
 	~ticketSystem();
 	

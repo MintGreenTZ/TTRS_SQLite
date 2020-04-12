@@ -29,11 +29,11 @@ void querySystem::init_ticket (std::string trainID, std::string saleDate, int st
     finalArray = "{ " + finalArray + " }";
     std::ostringstream sql;
     sql << "INSERT INTO ticketInfo VALUES ( " << "\'" << trainID << "\', \'" << finalArray << "\');";
-    c -> executeTrans(sql.str());  
+    c -> executeTrans(sql.str());
 }
 
 void querySystem::add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO) {
-    int num = atoi(str_num);
+    int num = stoi(str_num);
     auto info = (trainsys -> getTrainInfo(trainId)).second[0];
     auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
     auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());

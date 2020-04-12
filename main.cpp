@@ -22,16 +22,16 @@ std::map<std::string, int> ticketSystem::corres = {{"userName", 0}, {"orderCnt",
 	{"trainID", 3}, {"FROM", 4}, {"LEAVING_TIME", 5}, {"TO", 6}, {"ARRIVING_TIME", 7},
 	{"price", 8}, {"num", 9}};
 	
-// Compiler command : g++ main.cpp -lpqxx -lpq -o main
+// Compile command : g++ -std=c++17 main.cpp querySystem.cpp userSystem.cpp trainSystem.cpp ticketSystem.cpp -lpqxx -lpq -o main
 int main() {
     freopen("./testcases/dataTicket.in", "r", stdin);
 
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
-    querySystem *query = new querySystem(db, "querytable");
 	trainSystem *train = new trainSystem(db, "traintable", query);
 	ticketSystem *ticket = new ticketSystem(db, "tickettable", query, train);
-	
+	querySystem *query = new querySystem(ticket, train, user, db);
+
     std::string c;
     while (getline(std::cin, c)) {
     	//std::cout << c << std::endl;
