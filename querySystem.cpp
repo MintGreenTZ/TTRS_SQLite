@@ -45,10 +45,10 @@ void querySystem::add_ticket(std::string trainId, std::string date, std::string 
     auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
     auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
     auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
-    int s = -1, t = -1, price = 0;
+    int s = -1, t = -1;
     moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
     for (int i = 0; i < stations.size(); i++) {
-        if (stations[i] == FROM) s = i, price = 0;
+        if (stations[i] == FROM) s = i;
         if (stations[i] == TO) {
             t = i;
             break;
@@ -97,15 +97,20 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
     int s = -1, t = -1, price = 0;
     moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
     for (int i = 0; i < stations.size(); i++) {
+        price += prices[i];
         if (stations[i] == FROM) s = i, price = 0;
         if (stations[i] == TO) {
             t = i;
             break;
         }
-        price += i < 1 ? 0 : prices[i - 1];
         if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
     }
-    std::cout << "[test info] [buy_ticket] [price] " << price << std::endl;
+    
+    /* DEBUG
+    std::cout << "PRICE: " << s << " " << t << " " << price << std::endl;
+    for (int i = 0; i < prices.size(); i++) std::cout << prices[i] << " "; std::cout << std::endl;
+    */
+
     if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
     int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
@@ -149,11 +154,9 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
     sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
     if (ticket.size() == 0) return -1;
-    
-    std::cout << "[test info] [getMinTicket] ";
-    for (auto v : ticket) std::cout << v << " "; std::cout << std::endl;
     int ret = INT_MAX;
     for (int i = s; i <= t; i++) ret = std::min(ret, ticket[i]);
+    // std::cout << "GET MIN TICKET: " << ret << std::endl;
     return ret;
 }
 
@@ -168,7 +171,7 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
         auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
         auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
         auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
-        auto prices = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+        auto prices = arrayParser<int>::parse(info[trainSystem::corres["prices"]].as<std::string>());
 
         moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
         moment curMax(sale[1], info[trainSystem::corres["startTime"]].as<std::string>());
@@ -178,8 +181,7 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
         for (int i = 0; i < stations.size(); i++) {
             curMin += travelTimes[i];
             curMax += travelTimes[i];
-
-            price += i < 1 ? 0 : prices[i - 1];
+            price += prices[i];
             if (stations[i] == end) {
                 t2 = &curMin;
                 t2s = i;
@@ -201,6 +203,7 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
             t2->day += daysElapsed;
             t1s++, t2s++;
             int ticketNum = getMinTicket(trainId, daysElapsed, t1s, t2s);
+            // std::cout << "MIN TICKET: " << ticketNum << std::endl;
             std::ostringstream tmp;
             tmp << trainId << " " << start << " " << t1->toString() << "->" << end << " " << t2->toString() << " " << price << " " << ticketNum << "\n";
             allTrain.push_back(std::make_pair(mode == "cost" ? price : curMin.toInt(), tmp.str()));
