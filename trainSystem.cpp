@@ -86,7 +86,6 @@ std::pair<int, std::string> trainSystem::query_train(std::string trainID, std::s
 }
 
 int trainSystem::release_train(std::string trainID) {
-	std::cout << trainID << " " << trainID.length() << std::endl;
 	auto info = getTrainInfo(trainID);
 	if (info.first == -1 || info.second[0][corres["released"]].as<bool>() == true) return -1;
 	std::ostringstream q;
