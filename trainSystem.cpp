@@ -103,7 +103,7 @@ int trainSystem::release_train(std::string trainID) {
 			std::ostringstream q;
 			q << "INSERT INTO " << "city2trainIDtable" << " (city,trainID) "
 				<< "VALUES (\'" << stations[i] << "\', \'" << trainID << "\');";
-			c -> executeTrans(q.str());
+			city2trainID -> executeTrans(q.str());
 		}
 	}
 	return ret;
@@ -120,7 +120,7 @@ int trainSystem::delete_train(std::string trainID) {
 std::vector<std::string> trainSystem::findTrainId(std::string city) {
 	std::ostringstream q;
 	q << "SELECT * FROM " << "city2trainIDtable" << " WHERE city = \'" << city << "\';";
-	auto qry = c -> executeNonTrans(q.str());
+	auto qry = city2trainID -> executeNonTrans(q.str());
 	std::vector<std::string> ret;
 	for (pqxx::result::const_iterator it = qry.second.begin(); it != qry.second.end(); it++)
 		ret.push_back(it[1].as<std::string>());

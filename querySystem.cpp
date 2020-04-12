@@ -92,7 +92,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
     auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
     auto travelTimes = arrayParser<int>::parse(info[trainSystem::corres["travelTimes"]].as<std::string>());
     auto stopOverTimes = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
-    auto prices = arrayParser<int>::parse(info[trainSystem::corres["stopOverTimes"]].as<std::string>());
+    auto prices = arrayParser<int>::parse(info[trainSystem::corres["prices"]].as<std::string>());
 
     int s = -1, t = -1, price = 0;
     moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
@@ -105,6 +105,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         price += i < 1 ? 0 : prices[i - 1];
         if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
     }
+    std::cout << "[test info] [buy_ticket] [price] " << price << std::endl;
     if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
     int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
@@ -149,6 +150,7 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
     if (ticket.size() == 0) return -1;
     
+    std::cout << "[test info] [getMinTicket] ";
     for (auto v : ticket) std::cout << v << " "; std::cout << std::endl;
     int ret = INT_MAX;
     for (int i = s; i <= t; i++) ret = std::min(ret, ticket[i]);
