@@ -16,7 +16,7 @@ std::pair<int, pqxx::result> ticketSystem::getTicketInfo(std::string userName) {
 
 std::pair<int, pqxx::result> ticketSystem::getQueueInfo(std::string trainID) {
 	std::ostringstream q;
-	q << "SELECT * FROM " << tableName << " WHERE trainID = \'" << trainID << "\';";
+	q << "SELECT * fromSite " << tableName << " WHERE trainID = \'" << trainID << "\';";
 	auto ret = c -> executeNonTrans(q.str());
 	auto suc = ret.first;
 	auto content = ret.second;
@@ -27,7 +27,7 @@ std::pair<int, pqxx::result> ticketSystem::getQueueInfo(std::string trainID) {
 }
 
 struct ticketInfo {
-	std::string userName, trainID, date, num, FROM, TO;
+	std::string userName, trainID, date, num, fromSite, toSite;
 };
 
 void ticketSystem::scanQueue(std::string trainID) {
@@ -41,15 +41,15 @@ void ticketSystem::scanQueue(std::string trainID) {
 							it[corres["trainID"]].as<std::string>(),
 							it[corres["date"]].as<std::string>(),
 							it[corres["num"]].as<std::string>(),
-							it[corres["FROM"]].as<std::string>(),
-							it[corres["TO"]].as<std::string>()};
+							it[corres["fromSite"]].as<std::string>(),
+							it[corres["toSite"]].as<std::string>()};
 		allOrder.push_back(std::make_pair(it[corres["orderCnt"]].as<int>(), info));
 	}
 	std::sort(allOrder.begin(), allOrder.end(),[](auto a, auto b) -> bool { return a.first < b.first; });
 
 	for (auto it = allOrder.begin(); it != allOrder.end(); it++) {
 		if (query -> buy_ticket(it->second.userName, it->second.trainID, it->second.date, 
-				it->second.num, it->second.FROM, it->second.TO).first != -1) {
+				it->second.num, it->second.fromSite, it->second.toSite).first != -1) {
 			std::ostringstream q;
 			q << "UPDATE " << tableName << " SET status = 0 WHERE userName = \'"
 				<< it->second.userName << "\' AND orderCnt = " << it->first << ";";
@@ -71,20 +71,20 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 		"orderCnt int," 
 		"status int,"
 		"trainID varchar(255),"
-		"FROM varchar(255),"
+		"fromSite varchar(255),"
 		"LEAVING_TIME varchar(255),"
-		"TO varchar(255),"
+		"toSite varchar(255),"
 		"ARRIVING_TIME varchar(255),"
-		"price varchar(255)"
-		"num varchar(255)"
+		"price varchar(255),"
+		"num varchar(255),"
 		"date varchar(255));";
 	c -> executeTrans(sql);
 	if (checkFirst()) {
 		cnt -> executeTrans("CREATE TABLE IF NOT EXISTS cnttable(cnt int PRIMARY KEY);");
-		cnt -> executeTrans("INSERT INTO (cnt) VALUES (0);");
+		cnt -> executeTrans("INSERT INTO cnttable (cnt) VALUES (0);");
 		orderCnt = 0;
 	} else {
-		auto ret = cnt -> executeNonTrans("SELECT * FROM " + tableName + " ;");
+		auto ret = cnt -> executeNonTrans("SELECT * fromSite " + tableName + " ;");
 		orderCnt = ret.second[0][0].as<int>();
 	}
 }
@@ -94,23 +94,24 @@ ticketSystem::~ticketSystem() {
 }
 
 int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::string date, std::string num,
-		std::string FROM, std::string TO, std::string queue) {
-	std::pair<int, std::string> res = query -> buy_ticket(userName, trainID, date, FROM, TO, queue);
+		std::string fromSite, std::string toSite, std::string queue) {
+	std::pair<int, std::string> res = query -> buy_ticket(userName, trainID, date, num, fromSite, toSite, queue);
 	if (res.first == -1) return -1;
+	std::cout << res.first << " - " << res.second << std::endl;
 	std::ostringstream q;
 	if (res.second == "queue") { // inqueue
-		std::pair<std::string, std::string> times = train -> findTime(trainID, date, FROM, TO);
-		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,FROM,LEAVING_TIME,TO,ARRIVING_TIME,price,num,date) "
+		std::pair<std::string, std::string> times = train -> findTime(trainID, date, fromSite, toSite);
+		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num,date) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
-		<< "\', \'" << FROM << "\', \'" << times.first << "\', \'" << TO << "\', \'" << times.second
+		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
 		c -> executeTrans(q.str());
 		return -2;
 	} else { //success
-		std::pair<std::string, std::string> times = train -> findTime(trainID, date, FROM, TO);
-		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,FROM,LEAVING_TIME,TO,ARRIVING_TIME,price,num) "
+		std::pair<std::string, std::string> times = train -> findTime(trainID, date, fromSite, toSite);
+		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
-		<< "\', \'" << FROM << "\', \'" << times.first << "\', \'" << TO << "\', \'" << times.second
+		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
 		c -> executeTrans(q.str());
 		return res.first;
@@ -129,9 +130,9 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 			case refunded:	q << "[refund] ";	break;
 		}
 		q << it[corres["trainID"]].as<std::string>() << " ";
-		q << it[corres["FROM"]].as<std::string>() << " ";
+		q << it[corres["fromSite"]].as<std::string>() << " ";
 		q << it[corres["LEAVING_TIME"]].as<std::string>() << " -> ";
-		q << it[corres["TO"]].as<std::string>() << " ";
+		q << it[corres["toSite"]].as<std::string>() << " ";
 		q << it[corres["ARRIVING_TIME"]].as<std::string>() << " ";
 		q << it[corres["price"]].as<int>() << " ";
 		q << it[corres["num"]].as<int>() << "\n";
@@ -157,8 +158,8 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 				<< "\' AND orderCnt = " << it[corres["orderCnt"]].as<int>() << ";";
 				c -> executeNonTrans(q.str());
 				query -> add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
-					it[corres["num"]].as<std::string>(), it[corres["FROM"]].as<std::string>(),
-					it[corres["TO"]].as<std::string>());
+					it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
+					it[corres["toSite"]].as<std::string>());
 				scanQueue(it[corres["trainID"]].as<std::string>());
 				return 0;
 			} else

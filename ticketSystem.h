@@ -27,7 +27,7 @@ private:
 	std::pair<int, pqxx::result> getQueueInfo(std::string trainID);
 
 	struct ticketInfo {
-		std::string userName, trainID, date, num, FROM, TO;
+		std::string userName, trainID, date, num, fromSite, toSite;
 	};
 
 	void scanQueue(std::string trainID);
