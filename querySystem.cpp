@@ -57,6 +57,7 @@ void querySystem::add_ticket(std::string trainId, std::string date, std::string 
     }
     s++, t++;
     auto ticket = getTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+    if (ticket.size() == 0) return;
     std::ostringstream sql;
     sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").day - curMin.day + 1 << ":" << moment(date,"xx:xx").day - curMin.day + 1
         << "][" << s << ":" << t << "]=\'{";
@@ -122,6 +123,8 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
 
 std::vector<int> querySystem::parseTicket(pqxx::result t) {
     std::vector<int> ticket;
+    if (t.size() == 0) return ticket;
+
     auto parser = t[0][0].as_array();
     auto obj = parser.get_next();
     while (obj.first != pqxx::array_parser::juncture::done) {
@@ -144,6 +147,9 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
     std::ostringstream sql;
     sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
+    if (ticket.size() == 0) return -1;
+    
+    for (auto v : ticket) std::cout << v << " "; std::cout << std::endl;
     int ret = INT_MAX;
     for (int i = s; i <= t; i++) ret = std::min(ret, ticket[i]);
     return ret;
