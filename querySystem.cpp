@@ -11,11 +11,17 @@ std::vector<std::string> querySystem::intersection(std::vector<std::string> a, s
     return ret;
 }
 
-querySystem::querySystem(ticketSystem *_ticketsys, trainSystem *_trainsys, userSystem *_usersys, database *_c) : ticketsys(_ticketsys), trainsys(_trainsys), usersys(_usersys), c(_c) {
+querySystem::querySystem(database *_c) : c(_c) {
     std::string sql = "CREATE TABLE IF NOT EXISTS ticketInfo(" \
         "trainID varchar(255) PRIMARY KEY," \
         "ticketNum integer[][] );";
     c -> executeTrans(sql);
+}
+
+querySystem::init_system(ticketSystem *_ticketsys, trainSystem *_trainsys, userSystem *_usersys) {
+    ticketsys = _ticketsys;
+    trainsys = _trainsys;
+    usersys = _usersys;
 }
 
 //saleDate eg. 06-01|08-17, success ensured

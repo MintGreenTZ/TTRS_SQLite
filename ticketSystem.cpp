@@ -89,7 +89,7 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 	}
 }
 
-~ticketSystem::ticketSystem() {
+ticketSystem::~ticketSystem() {
 	cnt -> executeTrans("UPDATE cnttable SET cnt = " + std::to_string(cnt) + ";");
 }
 

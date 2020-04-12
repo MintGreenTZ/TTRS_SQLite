@@ -28,9 +28,10 @@ int main() {
 
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
+	querySystem *query = new querySystem(db);
 	trainSystem *train = new trainSystem(db, "traintable", query);
 	ticketSystem *ticket = new ticketSystem(db, "tickettable", query, train);
-	querySystem *query = new querySystem(ticket, train, user, db);
+	query -> init_system(ticket, train, user);
 
     std::string c;
     while (getline(std::cin, c)) {

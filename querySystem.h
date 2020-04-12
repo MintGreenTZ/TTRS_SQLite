@@ -28,7 +28,9 @@ private:
 	std::vector<std::string> intersection(std::vector<std::string> a, std::vector<std::string> b);
 
 public:
-	querySystem(ticketSystem *_ticketsys, trainSystem *_trainsys, userSystem *_usersys, database *_c);
+	querySystem(database *_c);
+
+	void init_system(ticketSystem *_ticketsys, trainSystem *_trainsys, userSystem *_usersys);
 
 public:
 	//saleDate eg. 06-01|08-17, success ensured
