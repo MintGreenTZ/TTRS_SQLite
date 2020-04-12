@@ -2,8 +2,10 @@
 #include <map>
 #include "parser.hpp"
 #include "database.hpp"
-#include "userSystem.hpp"
-#include "trainSystem.hpp"
+#include "userSystem.h"
+#include "trainSystem.h"
+#include "ticketSystem.h"
+#include "querySystem.h"
 
 std::map<std::string, int> CMDID = { {"add_user", 1}, {"login", 2}, {"logout", 3},
 									 {"query_profile", 4}, {"modify_profile", 5},
