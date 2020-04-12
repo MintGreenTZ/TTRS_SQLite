@@ -14,6 +14,9 @@
 #include <string>
 #include "arrayParser.hpp"
 
+class ticketSystem;
+class trainSystem;
+
 class querySystem {	
 private:
 	userSystem *usersys;
@@ -40,11 +43,11 @@ public:
 
 public:
 	//saleDate eg. 06-01|08-17, success ensured
-	void init_ticket (std::string trainID, std::string saleDate, std::string stationNum, int ticketNum) {
+	void init_ticket (std::string trainID, std::string saleDate, int stationNum, std::string ticketNum) {
 		auto d = arrayParser<std::string>::parse(saleDate);
 		moment start(d[0], "00:00"), end(d[1], "23:59");
 		std::string array, finalArray;
-		for (int i = 0; i < stoi(stationNum); i++) array += std::to_string(ticketNum) + (i + 1 < stoi(stationNum) ? "," : "");
+		for (int i = 0; i < stationNum; i++) array += ticketNum + (i + 1 < stationNum ? "," : "");
 		array = "{ " + array + " }";
 		for (int day = start.day; day <= end.day; day++) finalArray += array + (day + 1 <= end.day ? "," : "");
 		finalArray = "{ " + finalArray + " }";
@@ -54,8 +57,7 @@ public:
 	}
 	
 	void add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO) {
-		int num = std::atoi(str_num);
-		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
+		int num = atoi(str_num);
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
 		auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
@@ -100,7 +102,7 @@ public:
 	// return value: (<price>, "queue") or (-1, "") or (<price>, "")
 	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
 			std::string str_num, std::string FROM, std::string TO, std::string queue = "false") {
-		int num = std::atoi(str_num);
+		int num = atoi(str_num);
 		if (!usersys->checkUser(userName)) return std::make_pair(-1, "");
 		auto info = (trainsys -> getTrainInfo(trainId)).second[0];
 		auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());

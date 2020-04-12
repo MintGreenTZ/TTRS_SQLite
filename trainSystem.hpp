@@ -11,7 +11,7 @@
 class trainSystem {
 public:
 	static std::map<std::string, int> corres;
-	
+private:
 	database *c, *city2trainID;
 	std::string tableName;
 	querySystem *query;
@@ -105,8 +105,11 @@ public:
 		std::ostringstream q;
 		q << "UPDATE " << tableName << " SET released = true WHERE trainID = \'" << trainID << "\';";
 		int ret = c -> executeTrans(q.str());
+		std::string saleDate = info.second[0][corres["saleDate"]].as<std::string>();
+		int stationNum = info.second[0][corres["stationNum"]].as<int>();
+		std::string seatNum = info.second[0][corres["seatNum"]].as<std::string>();
 		if (ret == 0) {
-			query -> init_ticket(trainID, saleDate, stationNum);
+			query -> init_ticket(trainID, saleDate, stationNum, seatNum);
 			auto info = getTrainInfo(trainID);
 			std::vector<std::string> stations = arrayParser<std::string>::parse(
 				info.second[0][corres["stations"]].as<std::string>());
@@ -133,23 +136,24 @@ public:
 		q << "SELECT * FROM " << "city2trainIDtable" << " WHERE city = \'" << city << "\';";
 		auto qry = c -> executeNonTrans(q.str());
 		std::vector<std::string> ret;
-		for (result::const_iterator it = qry.second.begin(); it != qry.second.end(); it++)
-			ret.push_back(it[1].as<std::string>);
+		for (pqxx::result::const_iterator it = qry.second.begin(); it != qry.second.end(); it++)
+			ret.push_back(it[1].as<std::string>());
 		return ret;
 	}
 
-	std::pair<std::string, std::string> findTime(std::string trainID, std::string date, std:string FROM, std::TO) {
+	std::pair<std::string, std::string> findTime(std::string trainID, std::string date, std::string FROM, std::string TO) {
 		auto info = getTrainInfo(trainID);
 		std::vector<std::string> stations = arrayParser<std::string>::parse(info.second[0][corres["stations"]].as<std::string>());
 		std::vector<int> travelTimes = arrayParser<int>::parse(info.second[0][corres["travelTimes"]].as<std::string>());
 		std::vector<int> stopoverTimes = arrayParser<int>::parse(info.second[0][corres["stopoverTimes"]].as<std::string>());
 		std::string startTime = info.second[0][corres["startTime"]].as<std::string>();
+		int stationNum = info.second[0][corres["stationNum"]].as<int>();
 		moment curTime(date, startTime);
 		std::pair<std::string, std::string> ret;
 		for (int i = 1; i < stationNum; i++) {
 			if (stations[i - 1] == FROM) ret.first = curTime.toString();
 			curTime += travelTimes[i];
-			if (station[i] == TO) ret.second = curTime.toString();
+			if (stations[i] == TO) ret.second = curTime.toString();
 			curTime += stopoverTimes[i];
 		}
 	}

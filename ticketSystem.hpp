@@ -5,6 +5,9 @@
 #include "querySystem.hpp"
 #include "trainSystem.hpp"
 
+class querySystem;
+class trainSystem;
+
 class ticketSystem {
 public:
 	static std::map<std::string, int> corres;
@@ -46,14 +49,14 @@ private:
 
 	struct ticketInfo {
 		std::string userName, trainID, date, num, FROM, TO;
-	}
+	};
 
-	void scanQueue() {
-		auto info = getQueueInfo(userName);
+	void scanQueue(std::string trainID) {
+		auto info = getQueueInfo(trainID);
 		std::vector<std::pair<int, ticketInfo>> allOrder;
 
-		for (result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
-			if ((it[corres["status"]].as<int>() != pending) continue;
+		for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
+			if (it[corres["status"]].as<int>() != pending) continue;
 			std::ostringstream q;
 			ticketInfo info = {it[corres["userName"]].as<std::string>(),
 							   it[corres["trainID"]].as<std::string>(),
@@ -61,7 +64,7 @@ private:
 							   it[corres["num"]].as<std::string>(),
 							   it[corres["FROM"]].as<std::string>(),
 							   it[corres["TO"]].as<std::string>()};
-			allOrder.push_back(std::make_pair<int, ticketInfo>(it[corres["orderCnt"]], info));
+			allOrder.push_back(std::make_pair<int, ticketInfo>(it[corres["orderCnt"]].as<int>(), info));
 		}
 		std::sort(allOrder.begin(), allOrder.end());
 
@@ -103,12 +106,12 @@ public:
 			orderCnt = 0;
 		} else {
 			auto ret = cnt -> executeNonTrans("SELECT * FROM " + tableName + " ;");
-			orderCnt = ret.second[0].as<int>();
+			orderCnt = ret.second[0][0].as<int>();
 		}
 	}
 
 	~ticketSystem() {
-		cnt -> executeTrans("UPDATE cnttable SET cnt = " + cnt + ";");
+		cnt -> executeTrans("UPDATE cnttable SET cnt = " + std::to_string(cnt) + ";");
 	}
 	
 	int buy_ticket (std::string userName, std::string trainID, std::string date, std::string num,
@@ -121,7 +124,7 @@ public:
 			q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,FROM,LEAVING_TIME,TO,ARRIVING_TIME,price,num,date) "
 			<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
 			<< "\', \'" << FROM << "\', \'" << times.first << "\', \'" << TO << "\', \'" << times.second
-			<< "\', " << price << "," << num << ", \'" date << "\');";
+			<< "\', " << res.first << "," << num << ", \'" << date << "\');";
 			c -> executeTrans(q.str());
 			return -2;
 		} else { //success
@@ -129,7 +132,7 @@ public:
 			q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,FROM,LEAVING_TIME,TO,ARRIVING_TIME,price,num) "
 			<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
 			<< "\', \'" << FROM << "\', \'" << times.first << "\', \'" << TO << "\', \'" << times.second
-			<< "\', " << price << "," << num << ", \'" date << "\');";
+			<< "\', " << res.first << "," << num << ", \'" << date << "\');";
 			c -> executeTrans(q.str());
 			return res.first;
 		}
@@ -139,7 +142,7 @@ public:
 		auto info = getTicketInfo(userName);
 		std::vector<std::pair<int, std::string>> allOrder;
 
-		for (result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
+		for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
 			std::ostringstream q;
 			switch (it[corres["status"]].as<int>()) {
 				case success: 	q << "[success] ";	break;
@@ -153,13 +156,13 @@ public:
 			q << it[corres["ARRIVING_TIME"]].as<std::string>() << " ";
 			q << it[corres["price"]].as<int>() << " ";
 			q << it[corres["num"]].as<int>() << "\n";
-			allOrder.push_back(std::make_pair<int, std::string>(it[corres["orderCnt"]], q.str()));
+			allOrder.push_back(std::make_pair<int, std::string>(it[corres["orderCnt"]].as<int>(), q.str()));
 		}
 		std::sort(allOrder.begin(), allOrder.end());
 		std::ostringstream q;
 		q << allOrder.size() << "\n";
 		for (auto it = allOrder.begin(); it != allOrder.end(); it++)
-			q << *it;
+			q << it -> second;
 		return std::make_pair(0, q.str());
 	}
 
@@ -167,7 +170,7 @@ public:
 		int n = std::stoi(string_n);
 		auto info = getTicketInfo(userName);
 		int cnt = 1;
-		for (result::const_iterator it = info.second.begin(); it != info.second.end(); it++, cnt++) {
+		for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++, cnt++) {
 			if (cnt == n) {
 				if (it[corres["status"]].as<int>() == success) {
 					std::ostringstream q;
@@ -177,7 +180,7 @@ public:
 					query -> add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
 						it[corres["num"]].as<std::string>(), it[corres["FROM"]].as<std::string>(),
 						it[corres["TO"]].as<std::string>());
-					scanQueue(trainID);
+					scanQueue(it[corres["trainID"]].as<std::string>());
 					return 0;
 				} else
 					return -1;

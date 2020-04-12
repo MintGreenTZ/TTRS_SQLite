@@ -22,7 +22,7 @@ std::map<std::string, int> ticketSystem::corres = {{"userName", 0}, {"orderCnt",
 	
 // Compiler command : g++ main.cpp -lpqxx -lpq -o main
 int main() {
-    freopen("./testcases/dataTrain.in", "r", stdin);
+    freopen("./testcases/dataTicket.in", "r", stdin);
 
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
@@ -89,7 +89,10 @@ int main() {
 				break;
 			case 12: //buy_ticket
 				ret = ticket -> buy_ticket(args["u"], args["i"], args["d"], args["n"], args["f"], args["t"], args["q"]);
-				std::cout << ret == -2 ? "queue" : ret << std::endl;
+				if (ret == -2)
+					std::cout << "queue" << std::endl;
+				else
+					std::cout << ret << std::endl;
 				break;
 			case 13: //query_order
 				res = ticket -> query_order(args["u"]);
