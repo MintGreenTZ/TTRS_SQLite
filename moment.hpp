@@ -65,8 +65,3 @@ public:
 	}
 };
 
-const int moment::duration[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-const int moment::durationSum[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
-
-const std::string moment::emptyMoment = "xx-xx xx:xx";
-

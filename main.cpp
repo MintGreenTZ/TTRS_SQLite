@@ -21,7 +21,11 @@ std::map<std::string, int> trainSystem::corres = {{"trainID", 0}, {"stationNum",
 std::map<std::string, int> ticketSystem::corres = {{"userName", 0}, {"orderCnt", 1}, {"status", 2},
 	{"trainID", 3}, {"FROM", 4}, {"LEAVING_TIME", 5}, {"TO", 6}, {"ARRIVING_TIME", 7},
 	{"price", 8}, {"num", 9}};
-	
+
+const int moment::duration[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+const int moment::durationSum[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};
+const std::string moment::emptyMoment = "xx-xx xx:xx";
+
 // Compile command : g++ -std=c++17 main.cpp querySystem.cpp userSystem.cpp trainSystem.cpp ticketSystem.cpp -lpqxx -lpq -o main
 int main() {
     freopen("./testcases/dataTicket.in", "r", stdin);

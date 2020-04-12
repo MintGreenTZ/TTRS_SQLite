@@ -43,9 +43,9 @@ void ticketSystem::scanQueue(std::string trainID) {
 							it[corres["num"]].as<std::string>(),
 							it[corres["FROM"]].as<std::string>(),
 							it[corres["TO"]].as<std::string>()};
-		allOrder.push_back(std::make_pair<int, ticketInfo>(it[corres["orderCnt"]].as<int>(), info));
+		allOrder.push_back(std::make_pair(it[corres["orderCnt"]].as<int>(), info));
 	}
-	std::sort(allOrder.begin(), allOrder.end());
+	std::sort(allOrder.begin(), allOrder.end(),[](auto a, auto b) -> bool { return a.first < b.first; });
 
 	for (auto it = allOrder.begin(); it != allOrder.end(); it++) {
 		if (query -> buy_ticket(it->second.userName, it->second.trainID, it->second.date, 
@@ -77,7 +77,7 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 		"ARRIVING_TIME varchar(255),"
 		"price varchar(255)"
 		"num varchar(255)"
-		"date varchar(255))";
+		"date varchar(255));";
 	c -> executeTrans(sql);
 	if (checkFirst()) {
 		cnt -> executeTrans("CREATE TABLE IF NOT EXISTS cnttable(cnt int PRIMARY KEY);");
@@ -90,7 +90,7 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 }
 
 ticketSystem::~ticketSystem() {
-	cnt -> executeTrans("UPDATE cnttable SET cnt = " + std::to_string(cnt) + ";");
+	cnt -> executeTrans("UPDATE cnttable SET cnt = " + std::to_string(orderCnt) + ";");
 }
 
 int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::string date, std::string num,
