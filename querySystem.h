@@ -53,7 +53,7 @@ private:
 
 public:
 	//int is useless, just put all the output in string
-	std::pair<int, std::string> query_ticket(std::string start, std::string end, std::string date, std::string mode = "cost", bool bestOnly = false);
+	std::pair<int, std::string> query_ticket(std::string start, std::string end, std::string date, std::string mode = "time", bool bestOnly = false);
 	
 private:
 	std::pair<std::vector<std::string>, std::vector<int>> getAllStationFrom(std::vector<std::string> trains, std::string start);
