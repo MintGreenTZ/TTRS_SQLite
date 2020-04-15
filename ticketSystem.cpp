@@ -16,7 +16,7 @@ std::pair<int, pqxx::result> ticketSystem::getTicketInfo(std::string userName) {
 
 std::pair<int, pqxx::result> ticketSystem::getQueueInfo(std::string trainID) {
 	std::ostringstream q;
-	q << "SELECT * fromSite " << tableName << " WHERE trainID = \'" << trainID << "\';";
+	q << "SELECT * FROM " << tableName << " WHERE trainID = \'" << trainID << "\';";
 	auto ret = c -> executeNonTrans(q.str());
 	auto suc = ret.first;
 	auto content = ret.second;
@@ -76,7 +76,7 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 		"toSite varchar(255),"
 		"ARRIVING_TIME varchar(255),"
 		"price varchar(255),"
-		"num varchar(255),"
+		"num int,"
 		"date varchar(255));";
 	c -> executeTrans(sql);
 	if (checkFirst()) {
@@ -97,10 +97,10 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		std::string fromSite, std::string toSite, std::string queue) {
 	std::pair<int, std::string> res = query -> buy_ticket(userName, trainID, date, num, fromSite, toSite, queue);
 	if (res.first == -1) return -1;
-	std::cout << res.first << " - " << res.second << std::endl;
 	std::ostringstream q;
+	std::pair<std::string, std::string> times = train -> findTime(trainID, date, fromSite, toSite);
+	//std::cout << "[times] " << times.first << " " << times.second << std::endl;
 	if (res.second == "queue") { // inqueue
-		std::pair<std::string, std::string> times = train -> findTime(trainID, date, fromSite, toSite);
 		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num,date) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
@@ -108,11 +108,11 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		c -> executeTrans(q.str());
 		return -2;
 	} else { //success
-		std::pair<std::string, std::string> times = train -> findTime(trainID, date, fromSite, toSite);
-		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num) "
+		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num,date) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
+		//std::cout << "[cmd] " << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return res.first;
 	}

@@ -142,5 +142,6 @@ std::pair<std::string, std::string> trainSystem::findTime(std::string trainID, s
 		if (stations[i] == TO) ret.second = curTime.toString();
 		curTime += stopoverTimes[i];
 	}
+	return ret;
 }
 

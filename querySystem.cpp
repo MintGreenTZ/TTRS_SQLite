@@ -114,6 +114,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
     if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
     int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+    std::cout << "[rem] " << rem << std::endl;
     if (rem >= num) {
         auto ticket = getTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
         std::ostringstream sql;
@@ -122,7 +123,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         for (int i = s; i <= t; i++) sql << ticket[i] - num << (i != t ? "," : "");
         sql << "}\';";
         c -> executeTrans(sql.str()); 
-        return std::make_pair(price, "");
+        return std::make_pair(price * num, "");
     }
     else return std::make_pair(-1, queue == "false" ? "queue" : "");
 }
