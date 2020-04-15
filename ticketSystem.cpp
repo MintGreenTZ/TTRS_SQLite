@@ -84,7 +84,7 @@ ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_q
 		cnt -> executeTrans("INSERT INTO cnttable (cnt) VALUES (0);");
 		orderCnt = 0;
 	} else {
-		auto ret = cnt -> executeNonTrans("SELECT * fromSite " + tableName + " ;");
+		auto ret = cnt -> executeNonTrans("SELECT * FROM " + tableName + " ;");
 		orderCnt = ret.second[0][0].as<int>();
 	}
 }
