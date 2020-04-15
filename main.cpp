@@ -87,14 +87,17 @@ int main() {
 				std::cout << ret << std::endl;
 				break;
 			case 10: //query_ticket
-				res = query -> query_ticket(args["s"], args["t"], args["d"]);
+				parser::replaceByDefault(args["p"], "time");
+				res = query -> query_ticket(args["s"], args["t"], args["d"], args["p"]);
 				std::cout << res.second << std::endl;
 				break;
 			case 11: //query_transfer
-				res = query -> query_ticket(args["s"], args["t"], args["d"]);
+				parser::replaceByDefault(args["p"], "time");
+				res = query -> query_ticket(args["s"], args["t"], args["d"], args["p"]);
 				std::cout << res.second << std::endl;
 				break;
 			case 12: //buy_ticket
+				parser::replaceByDefault(args["q"], "false");
 				ret = ticket -> buy_ticket(args["u"], args["i"], args["d"], args["n"], args["f"], args["t"], args["q"]);
 				if (ret == -2)
 					std::cout << "queue" << std::endl;
@@ -106,6 +109,7 @@ int main() {
 				std::cout << res.second << std::endl;
 				break;
 			case 14: //refund_ticket
+				parser::replaceByDefault(args["n"], "1");
 				ret = ticket -> refund_ticket(args["u"], args["n"]);
 				std::cout << ret << std::endl;
 				break;

@@ -27,4 +27,8 @@ public:
         }
         return std::make_pair(cmd, p);
     }
+
+    static void replaceByDefault(std::string &val, std::string d) {
+        val = (val == "") ? d : val;
+    }
 };
