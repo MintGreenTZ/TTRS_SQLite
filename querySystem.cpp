@@ -105,12 +105,6 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         }
         if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
     }
-    
-    /* DEBUG
-    std::cout << "PRICE: " << s << " " << t << " " << price << std::endl;
-    for (int i = 0; i < prices.size(); i++) std::cout << prices[i] << " "; std::cout << std::endl;
-    */
-
     if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
     int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
@@ -121,7 +115,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").day - curMin.day + 1 << ":" << moment(date,"xx:xx").day - curMin.day + 1
             << "][" << s << ":" << t << "]=\'{";
         for (int i = s; i <= t; i++) sql << ticket[i] - num << (i != t ? "," : "");
-        sql << "}\';";
+        sql << "}\' WHERE trainID = \'" << trainId << "\';";
         c -> executeTrans(sql.str()); 
         return std::make_pair(price * num, "");
     }
@@ -156,7 +150,7 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
     if (ticket.size() == 0) return -1;
     int ret = INT_MAX;
-    for (int i = s; i <= t; i++) ret = std::min(ret, ticket[i]);
+    for (int i = s - 1; i <= t - 1; i++) ret = std::min(ret, ticket[i]);
     // std::cout << "GET MIN TICKET: " << ret << std::endl;
     return ret;
 }
