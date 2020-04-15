@@ -67,7 +67,7 @@ bool ticketSystem::checkFirst() {
 ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train) :
 		c(_c), cnt(_c), tableName(_tableName), query(_query), train(_train){
 	std::string sql = "CREATE TABLE IF NOT EXISTS tickettable("
-		"userName varchar(255) PRIMARY KEY,"
+		"userName varchar(255),"
 		"orderCnt int," 
 		"status int,"
 		"trainID varchar(255),"
@@ -105,6 +105,8 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
+		std::cout << "[Success Queue!]" << std::endl;
+		std::cout << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return -2;
 	} else { //success
@@ -112,7 +114,8 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
-		//std::cout << "[cmd] " << q.str() << std::endl;
+		std::cout << "[Success Insert!]" << std::endl;
+		std::cout << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return res.first;
 	}
@@ -147,6 +150,7 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 }
 
 int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
+	std::cout << "[Refund begin]" << std::endl;
 	int n = std::stoi(string_n);
 	auto info = getTicketInfo(userName);
 	int cnt = 1;
@@ -161,6 +165,7 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 					it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
 					it[corres["toSite"]].as<std::string>());
 				scanQueue(it[corres["trainID"]].as<std::string>());
+				std::cout << "[Refund end]" << std::endl;
 				return 0;
 			} else
 				return -1;

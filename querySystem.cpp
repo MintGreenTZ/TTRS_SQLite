@@ -39,6 +39,7 @@ void querySystem::init_ticket (std::string trainID, std::string saleDate, int st
 }
 
 void querySystem::add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO) {
+    std::cout << "[AddTicket Begin]" << std::endl;
     int num = stoi(str_num);
     auto info = (trainsys -> getTrainInfo(trainId)).second[0];
     auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
@@ -64,8 +65,10 @@ void querySystem::add_ticket(std::string trainId, std::string date, std::string 
     for (int i = s; i <= t; i++) sql << ticket[i] + num << (i != t ? "," : "");
     sql << "}\';";
     c -> executeTrans(sql.str()); 
+    std::cout << "[AddTicket End]" << std::endl;
 }
 
+/*
 void querySystem::add_ticket(std::string trainId, std::string date, std::string station) {
     auto info = (trainsys -> getTrainInfo(trainId)).second[0];
     auto stations = arrayParser<std::string>::parse(info[trainSystem::corres["stations"]].as<std::string>());
@@ -81,6 +84,7 @@ void querySystem::add_ticket(std::string trainId, std::string date, std::string 
         break;
     }
 }
+*/
 
 // return value: (<price>, "queue") or (-1, "") or (<price>, "")
 std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::string trainId, std::string date,
@@ -108,6 +112,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
     if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
     int rem = getMinTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
+    std::cout << "[queue] " << (queue == "true") << std::endl;
     std::cout << "[rem] " << rem << std::endl;
     if (rem >= num) {
         auto ticket = getTicket(trainId, moment(date,"xx:xx").day - curMin.day, s, t);
@@ -119,7 +124,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         c -> executeTrans(sql.str()); 
         return std::make_pair(price * num, "");
     }
-    else return std::make_pair(-1, queue == "false" ? "queue" : "");
+    else return std::make_pair(queue == "true" ? price * num : -1, queue == "true" ? "queue" : "");
 }
 
 std::vector<int> querySystem::parseTicket(pqxx::result t) {
@@ -138,6 +143,7 @@ std::vector<int> querySystem::parseTicket(pqxx::result t) {
 }
 
 std::vector<int> querySystem::getTicket(std::string trainId, int day, int s, int t) {
+    std::cout << "[getTicket] " << trainId << " " << day << " " << s << " " << t << std::endl;
     std::ostringstream sql;
     sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
