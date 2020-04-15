@@ -20,7 +20,7 @@ std::map<std::string, int> trainSystem::corres = {{"trainID", 0}, {"stationNum",
 	{"saleDate", 8}, {"type", 9}, {"released", 10}};
 std::map<std::string, int> ticketSystem::corres = {{"userName", 0}, {"orderCnt", 1}, {"status", 2},
 	{"trainID", 3}, {"fromSite", 4}, {"LEAVING_TIME", 5}, {"toSite", 6}, {"ARRIVING_TIME", 7},
-	{"price", 8}, {"num", 9}};
+	{"price", 8}, {"num", 9}, {"date", 10}};
 
 const int moment::duration[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 const int moment::durationSum[13] = { 0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334, 365};

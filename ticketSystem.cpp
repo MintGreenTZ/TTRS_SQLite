@@ -161,6 +161,7 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 				q << "UPDATE " << tableName << " SET status = 2 WHERE userName = \'" << userName
 				<< "\' AND orderCnt = " << it[corres["orderCnt"]].as<int>() << ";";
 				c -> executeNonTrans(q.str());
+				// std::cout << "[DATE] " << it[corres["date"]].as<std::string>() << std::endl;
 				query -> add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
 					it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
 					it[corres["toSite"]].as<std::string>());

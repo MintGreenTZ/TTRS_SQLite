@@ -42,7 +42,7 @@ public:
 
 	// return value: (<price>, "queue") or (-1, "") or (<price>, "")
 	std::pair<int, std::string> buy_ticket (std::string userName, std::string trainId, std::string date,
-			std::string str_num, std::string FROM, std::string TO, std::string queue = "false");
+			std::string str_num, std::string FROM, std::string TO, std::string queue = "false", bool isBuy = true);
 
 private:
 	std::vector<int> parseTicket(pqxx::result t);
