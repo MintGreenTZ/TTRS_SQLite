@@ -7,6 +7,7 @@ login -u aaa -p bbb
 add_user -c aaa -u gabriel -p tangze -n nnn -m abc@sjtu.com -g 4
 login -u gabriel -p tangze
 buy_ticket -u aaa -i SAD_TRAIN -d 08-17 -n 800 -f e_up -t mid -q true
+buy_ticket -u gabriel -i SAD_TRAIN -d 08-17 -n 400 -f e_mid -t e_down
 buy_ticket -u gabriel -i SAD_TRAIN -d 08-17 -n 400 -f e_mid -t e_down -q true
 buy_ticket -u gabriel -i SAD_TRAIN -d 08-17 -n 200 -f e_mid -t e_down -q true
 query_order -u aaa

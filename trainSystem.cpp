@@ -30,7 +30,7 @@ trainSystem::trainSystem(database *_c, std::string _tableName, querySystem *_que
 		"released boolean );";
 	c -> executeTrans(sql);
 	sql = "CREATE TABLE IF NOT EXISTS city2trainIDtable("
-		"city varchar(255) PRIMARY KEY,"
+		"city varchar(255),"
 		"trainID varchar(255) );";
 	city2trainID -> executeTrans(sql);
 }
