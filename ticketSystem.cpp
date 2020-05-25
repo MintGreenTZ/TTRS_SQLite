@@ -105,8 +105,8 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
-		std::cout << "[Success Queue!]" << std::endl;
-		std::cout << q.str() << std::endl;
+		// std::cout << "[Success Queue!]" << std::endl;
+		// std::cout << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return -2;
 	} else { //success
@@ -114,8 +114,8 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
 		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
-		std::cout << "[Success Insert!]" << std::endl;
-		std::cout << q.str() << std::endl;
+		// std::cout << "[Success Insert!]" << std::endl;
+		// std::cout << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return res.first;
 	}

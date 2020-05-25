@@ -42,9 +42,10 @@ int trainSystem::add_train(std::string trainID, std::string stationNum, std::str
 	prices = "0|" + prices;
 	travelTimes = "0|" + travelTimes;
 	stopoverTimes = "0|" + stopoverTimes + "|0";
-	q << "INSERT INTO " << tableName << " (trainID,stationNum,seatNum,stations,prices,startTime,travelTimes,stopoverTimes,saleDate,type,released) "
-		<< "VALUES (\'" << trainID << "\', " << stationNum << "," << seatNum << ", \'" << stations 
-		<< "\', \'" << prices << "\', \'" << startTime << "\', \'" << travelTimes << "\', \'" 
+
+	q << "INSERT INTO " << tableName << " (trainID,stationNum,stations,seatNum,prices,startTime,travelTimes,stopoverTimes,saleDate,type,released) "
+		<< "VALUES (\'" << trainID << "\', " << stationNum << ",\'" << stations << "\', " << seatNum
+		<< ", \'" << prices << "\', \'" << startTime << "\', \'" << travelTimes << "\', \'" 
 		<< stopoverTimes << "\', \'" << saleDate << "\', \'" << type << "\'," << "false);";
 	return c -> executeTrans(q.str());
 }

@@ -105,8 +105,10 @@ std::pair<int, std::string> userSystem::modify_profile(std::string cusername, st
     std::string s;
     for (auto it = v.begin(); it != v.end(); it++) s += (it != v.begin() ? ", " : "") + *it;
 
-    std::ostringstream q; 
-    q << "UPDATE " << tableName << " SET " << s << " WHERE username = \'" << username << "\';";
-    c -> executeTrans(q.str());
+    if (s != "") {
+        std::ostringstream q; 
+        q << "UPDATE " << tableName << " SET " << s << " WHERE username = \'" << username << "\';";
+        c -> executeTrans(q.str());
+    }
     return query_profile(cusername, username);
 }

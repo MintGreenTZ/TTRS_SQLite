@@ -11,7 +11,7 @@ public:
     database() {
         conn = new pqxx::connection("dbname = ttrs user = gabriel password = tangze hostaddr = 127.0.0.1 port = 5432");
         if (conn -> is_open()) {
-            std::cout << "Opened database successfully: " << conn -> dbname() << std::endl;
+            // std::cout << "Opened database successfully: " << conn -> dbname() << std::endl;
         } else {
             std::cout << "Can't open database" << std::endl;
 		}
