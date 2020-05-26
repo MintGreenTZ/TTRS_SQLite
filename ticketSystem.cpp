@@ -139,6 +139,7 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 		q << it[corres["ARRIVING_TIME"]].as<std::string>() << " ";
 		q << it[corres["price"]].as<int>() << " ";
 		q << it[corres["num"]].as<int>() << "\n";
+		// std::cout<< "WTF IS THIS" << it[corres["ARRIVING_TIME"]].as<std::string>() << std::endl;
 		allOrder.push_back(std::make_pair<int, std::string>(it[corres["orderCnt"]].as<int>(), q.str()));
 	}
 	std::sort(allOrder.begin(), allOrder.end());
@@ -150,7 +151,7 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 }
 
 int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
-	std::cout << "[Refund begin]" << std::endl;
+	// std::cout << "[Refund begin]" << std::endl;
 	int n = std::stoi(string_n);
 	auto info = getTicketInfo(userName);
 	int cnt = 1;
@@ -166,7 +167,7 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 					it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
 					it[corres["toSite"]].as<std::string>());
 				scanQueue(it[corres["trainID"]].as<std::string>());
-				std::cout << "[Refund end]" << std::endl;
+				// std::cout << "[Refund end]" << std::endl;
 				return 0;
 			} else
 				return -1;

@@ -46,6 +46,7 @@ void querySystem::add_ticket(std::string trainId, std::string date, std::string 
 // return value: (<price>, "queue") or (-1, "") or (<price>, "")
 std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::string trainId, std::string date,
         std::string str_num, std::string FROM, std::string TO, std::string queue, bool isBuy) {
+    // std::cout << (isBuy ? "Buy Ticket" : "Add Ticket") << " " << trainId << " " << date << " " << str_num << " " << FROM << " " << TO << std::endl;
     int num = stoi(str_num);
     if (isBuy && !usersys->checkUser(userName)) return std::make_pair(-1, "");
     auto info = (trainsys -> getTrainInfo(trainId)).second[0];
@@ -74,12 +75,12 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
 
     // std::cout << curMin.toString() << " " << moment(date,"xx:xx").toString() << std::endl;
     // std::cout << moment(date,"xx:xx").toDay() << " " << curMin.toDay() << std::endl;
-
     int rem = getMinTicket(trainId, moment(date,"xx:xx").toDay() - curMin.toDay(), s, t);
     // std::cout << "[queue] " << (queue == "true") << std::endl;
-    // std::cout << "[rem] " << rem << std::endl;
+    // std::cout << "[rem] " << s << " " << t << " " << rem << std::endl;
 
     if (!isBuy || rem >= num) {
+        t -= 1;
         auto ticket = getTicket(trainId, moment(date,"xx:xx").toDay() - curMin.toDay(), s, t);
         std::ostringstream sql;
         sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").toDay() - curMin.toDay() + 1 << ":" << moment(date,"xx:xx").toDay() - curMin.toDay() + 1
@@ -117,12 +118,15 @@ std::vector<int> querySystem::getTicket(std::string trainId, int day, int s, int
 }
 
 int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
+    t -= 1;
     std::ostringstream sql;
     // std::cout << trainId << " " << day << " " << s << " " << t << std::endl;
     sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
     if (ticket.size() == 1) return -1;
     int ret = INT_MAX;
+    // std::cout << "CUR TICKET: ";
+    // for (auto t:ticket) std::cout << t << " "; std::cout << std::endl;
     for (int i = s; i <= t; i++) ret = std::min(ret, ticket[i]);
     // std::cout << "GET MIN TICKET: " << ret << std::endl;
     return ret;
@@ -176,7 +180,7 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
             t2.day += daysElapsed;
             t1s++, t2s++;
             int ticketNum = getMinTicket(trainId, daysElapsed, t1s, t2s);
-            // std::cout << "MIN TICKET: " << ticketNum << std::endl;
+            // std::cout << "MIN TICKET: " << ticketNum << " " << t1s << " " << t2s << std::endl;
             std::ostringstream tmp;
             tmp << trainId << " " << start << " " << t1.toString() << " -> " << end << " " << t2.toString() << " " << price << " " << ticketNum << "\n";
             allTrain.push_back(std::make_pair(mode == "cost" ? price : t1.toInt(), tmp.str()));
