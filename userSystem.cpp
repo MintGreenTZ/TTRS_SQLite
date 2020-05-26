@@ -7,12 +7,16 @@ bool userSystem::checkFirst() {
     return ret.second.size() == 0;
 }
 
-void userSystem::addUser(std::string username) {
+int userSystem::addCurUser(std::string username) {
+    if (curUsers.find(username) != curUsers.end()) return -1;
     curUsers.insert(username);
+    return 0;
 }
 
-void userSystem::delUser(std::string username) {
+int userSystem::delCurUser(std::string username) {
+    if (curUsers.find(username) == curUsers.end()) return -1;
     curUsers.erase(username);
+    return 0;
 }
 
 bool userSystem::checkUser(std::string username) {
@@ -69,23 +73,18 @@ int userSystem::login(std::string username, std::string password) {
     auto content = t.second[0];
     auto ans = content[corres["password"]].as<std::string>();
     if (ans == password) {
-        addUser(username);
-        return 0;
+        return addCurUser(username);
     }
     return -1;
 }
 
 int userSystem::logout(std::string username) {
-    if (checkUser(username)) {
-        delUser(username);
-        return 0;
-    }
-    return -1;
+    return delCurUser(username);
 }
 
 std::pair<int, std::string> userSystem::query_profile(std::string cusername, std::string username) {
     if (!checkUser(cusername)) return std::make_pair(-1, "");
-    if (getPrivilege(cusername) < getPrivilege(username)) return std::make_pair(-1, "");
+    if (getPrivilege(cusername) <= getPrivilege(username) && cusername != username) return std::make_pair(-1, "");
 
     auto t = getProfile(username);
     if (t.first == -1) return std::make_pair(-1, "");
@@ -95,7 +94,7 @@ std::pair<int, std::string> userSystem::query_profile(std::string cusername, std
 std::pair<int, std::string> userSystem::modify_profile(std::string cusername, std::string username, 
             std::string password, std::string name, std::string mailAddr, std::string privilege) {
     if (!checkUser(cusername)) return std::make_pair(-1, "");
-    if (getPrivilege(cusername) < getPrivilege(username)) return std::make_pair(-1, "");
+    if (getPrivilege(cusername) <= getPrivilege(username) && cusername != username) return std::make_pair(-1, "");
 
     std::vector<std::string> v;
     if (password != "") v.push_back("password = \'" + password + "\'");

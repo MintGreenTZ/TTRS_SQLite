@@ -21,9 +21,9 @@ private:
 private:
     bool checkFirst();
 
-    void addUser(std::string username);
+    int addCurUser(std::string username);
 
-    void delUser(std::string username);
+    int delCurUser(std::string username);
 
     bool checkUser(std::string username);
 
