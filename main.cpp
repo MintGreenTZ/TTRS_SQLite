@@ -28,7 +28,8 @@ const std::string moment::emptyMoment = "xx-xx xx:xx";
 
 // Compile command : g++ -std=c++17 *.cpp -lpqxx -lpq -o main
 int main() {
-    // freopen("./testcases/dataTicket.in", "r", stdin);
+    freopen("./sample_in.txt", "r", stdin);
+	freopen("./sample_my_out.txt", "w", stdout);
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
 	querySystem *query = new querySystem(db);
@@ -38,7 +39,7 @@ int main() {
 
     std::string c;
 	int cnt = 0;
-    while (getline(std::cin, c) && ++cnt < 670) {
+    while (getline(std::cin, c) /*&& ++cnt < 670*/) {
     	//std::cout << c << std::endl;
         auto t = parser::parse(c);
         if (t.first == "") break;
@@ -106,13 +107,15 @@ int main() {
 				break;
 			case 13: //query_order
 				res = ticket -> query_order(args["u"]);
-				std::cout << res.second << std::endl;
+				std::cout << res.second;
 				break;
 			case 14: //refund_ticket
 				parser::replaceByDefault(args["n"], "1");
 				ret = ticket -> refund_ticket(args["u"], args["n"]);
 				std::cout << ret << std::endl;
 				break;
+			case 16:
+				std::cout << "bye" << std::endl;
             default:
                 std::cerr << "Unknown command: " << t.first << std::endl;
         }
