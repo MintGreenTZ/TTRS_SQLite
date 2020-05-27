@@ -68,23 +68,24 @@ std::pair<int, std::string> trainSystem::query_train(std::string trainID, std::s
 	std::vector<int> prices = arrayParser<int>::parse(info.second[0][corres["prices"]].as<std::string>());
 	std::vector<int> travelTimes = arrayParser<int>::parse(info.second[0][corres["travelTimes"]].as<std::string>());
 	std::vector<int> stopOverTimes = arrayParser<int>::parse(info.second[0][corres["stopOverTimes"]].as<std::string>());
+	std::vector<int> remainTickets = query -> query_ticket(trainID, date);
 	std::string startTime = info.second[0][corres["startTime"]].as<std::string>();
 	
 	moment curTime(date, startTime);
 	int price = 0;
-	q << stations[0] << " " << moment::emptyMoment << " -> " << curTime.toString() << " " << price << "\n";
+	q << stations[0] << " " << moment::emptyMoment << " -> " << curTime.toString() << " " << price << " " << remainTickets[0] << "\n";
 
 	for (int i = 1; i < stationNum - 1; i++) {
 		curTime += travelTimes[i];
 		q << stations[i] << " " << curTime.toString() << " -> ";
 		curTime += stopOverTimes[i];
 		price += prices[i];
-		q << curTime.toString() << " " << price << "\n";
+		q << curTime.toString() << " " << price << " " << remainTickets[i] << "\n";
 	}
 
 	curTime += travelTimes[stationNum - 1];
 	price += prices[stationNum - 1];
-	q << stations[stationNum - 1] << " " << curTime.toString() << " -> " << moment::emptyMoment << " " << price;
+	q << stations[stationNum - 1] << " " << curTime.toString() << " -> " << moment::emptyMoment << " " << price << " x";
 	
 	return std::make_pair(0, q.str());
 }
