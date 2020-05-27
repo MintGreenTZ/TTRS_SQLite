@@ -48,7 +48,7 @@ public:
 private:
 	std::vector<int> parseTicket(pqxx::result t);
 
-	std::vector<int> getTicket(std::string trainId, int day, int s, int t);
+	std::vector<int> getTicket(std::string trainId, int day);
     
 	int getMinTicket(std::string trainId, int day, int s, int t);
 

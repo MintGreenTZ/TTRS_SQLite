@@ -116,6 +116,7 @@ int main() {
 				break;
 			case 16:
 				std::cout << "bye" << std::endl;
+				break;
             default:
                 std::cerr << "Unknown command: " << t.first << std::endl;
         }
