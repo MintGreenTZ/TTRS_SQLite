@@ -113,8 +113,8 @@ std::vector<int> querySystem::getTicket(std::string trainId, int day) {
     std::ostringstream sql;
     sql << "SELECT " << "ticketNum[" << day + 1 << " : " << day + 1 << "][:] FROM ticketInfo WHERE trainID = \'" << trainId << "\';";
     auto ticket = parseTicket(c -> executeNonTrans(sql.str()).second);
-    std::cout << "TICKET: " << std::endl;
-    for (auto t: ticket) std::cout << t << " "; std::cout << std::endl;
+    // std::cout << "TICKET: " << std::endl;
+    // for (auto t: ticket) std::cout << t << " "; std::cout << std::endl;
     return ticket;
 }
 
