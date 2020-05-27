@@ -61,14 +61,15 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
     // std::cout << sale[0] << " " << info[trainSystem::corres["startTime"]].as<std::string>() << std::endl;
 
     for (int i = 0; i < stations.size(); i++) {
+        if (s == -1) curMin += travelTimes[i];
         // std::cout << curMin.toString() << " " << travelTimes[i] << " " << stopOverTimes[i] << std::endl;
         price += prices[i];
-        if (stations[i] == FROM) s = i, price = 0;
+        if (stations[i] == FROM) s = i, price = 0, curMin += stopOverTimes[i];
         if (stations[i] == TO) {
             t = i;
             break;
         }
-        if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
+        if (s == -1) curMin +stopOverTimes[i];
     }
 	if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
@@ -119,7 +120,11 @@ std::vector<int> querySystem::getTicket(std::string trainId, int day) {
 }
 
 std::vector<int> querySystem::query_ticket(std::string trainID, std::string date){
-    auto ret = getTicket(trainID, stoi(date));
+    // assert(false);
+    auto info = (trainsys -> getTrainInfo(trainID)).second[0];
+    auto sale = arrayParser<std::string>::parse(info[trainSystem::corres["saleDate"]].as<std::string>());
+    auto ret = getTicket(trainID, moment(date,"xx:xx").toDay() - moment(sale[0],"xx:xx").toDay());
+    // std::cout << "DEBUG" << date << " " << sale[0] << " " << moment(date,"xx:xx").toDay() - moment(sale[0],"xx:xx").toDay() + 1 << std::endl;
     if (ret.size()) ret.erase(ret.begin());
     return ret;
 }
