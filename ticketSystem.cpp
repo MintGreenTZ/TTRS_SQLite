@@ -104,18 +104,18 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num,date) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << pending << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
-		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
+		<< "\', " << int(res.first / atoi(num.c_str())) << "," << num << ", \'" << date << "\');";
 		// std::cout << "[Success Queue!]" << std::endl;
-		// std::cout << q.str() << std::endl;
+		// std::cout << "!!!" << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return -2;
 	} else { //success
 		q << "INSERT INTO " << tableName << " (userName,orderCnt,status,trainID,fromSite,LEAVING_TIME,toSite,ARRIVING_TIME,price,num,date) "
 		<< "VALUES (\'" << userName << "\', " << orderCnt++ << "," << success << ", \'" << trainID 
 		<< "\', \'" << fromSite << "\', \'" << times.first << "\', \'" << toSite << "\', \'" << times.second
-		<< "\', " << res.first << "," << num << ", \'" << date << "\');";
+		<< "\', " << int(res.first / atoi(num.c_str())) << "," << num << ", \'" << date << "\');";
 		// std::cout << "[Success Insert!]" << std::endl;
-		// std::cout << q.str() << std::endl;
+		// std::cout << "!!!" << q.str() << std::endl;
 		c -> executeTrans(q.str());
 		return res.first;
 	}
@@ -130,7 +130,7 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 		switch (it[corres["status"]].as<int>()) {
 			case success: 	q << "[success] ";	break;
 			case pending: 	q << "[pending] ";	break;
-			case refunded:	q << "[refund] ";	break;
+			case refunded:	q << "[refunded] ";	break;
 		}
 		q << it[corres["trainID"]].as<std::string>() << " ";
 		q << it[corres["fromSite"]].as<std::string>() << " ";
@@ -140,9 +140,13 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 		q << it[corres["price"]].as<int>() << " ";
 		q << it[corres["num"]].as<int>() << "\n";
 		// std::cout<< "WTF IS THIS" << it[corres["ARRIVING_TIME"]].as<std::string>() << std::endl;
-		allOrder.push_back(std::make_pair<int, std::string>(it[corres["orderCnt"]].as<int>(), q.str()));
+		allOrder.push_back(std::make_pair<int, std::string>(-it[corres["orderCnt"]].as<int>(), q.str()));
 	}
 	std::sort(allOrder.begin(), allOrder.end());
+	/*std::cout << "orderCnt ";
+	for (int i = 0; i < allOrder.size(); i++)
+		std::cout << allOrder[i].first << " ";
+	std::cout << std::endl;*/
 	std::ostringstream q;
 	q << allOrder.size() << "\n";
 	for (auto it = allOrder.begin(); it != allOrder.end(); it++)

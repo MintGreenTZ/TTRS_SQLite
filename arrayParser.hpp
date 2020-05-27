@@ -23,6 +23,8 @@ public:
 
 		while (str.length() >= 1 && (str[str.length() - 1] == '\r' || str[str.length() - 1] == '\n' || str[str.length() - 1] == ' ')) str = str.substr(0, str.length() - 1);
 
+		//std::cout << str << std::endl;
+
 		std::vector<T> p;
 
 		while (str != "") {
@@ -31,6 +33,10 @@ public:
 			else
 				p.push_back(getNext(str));
 		}
+
+		/*for (int i = 0; i < p.size(); i++)
+			std::cout << p[i] << " ";
+		std::cout << std::endl;*/
 
 		return p;
 	}

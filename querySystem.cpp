@@ -70,7 +70,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         }
         if (s == -1) curMin += travelTimes[i] + stopOverTimes[i];
     }
-    if (s == -1 || t == -1) return std::make_pair(-1, "");
+	if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
 
     // std::cout << curMin.toString() << " " << moment(date,"xx:xx").toString() << std::endl;
@@ -90,7 +90,7 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
         c -> executeTrans(sql.str()); 
         return std::make_pair(price * num, "");
     }
-    else return std::make_pair(queue == "true" ? price * num : -1, queue == "true" ? "queue" : "");
+	else return std::make_pair(queue == "true" ? price * num : -1, queue == "true" ? "queue" : "");
 }
 
 std::vector<int> querySystem::parseTicket(pqxx::result t) {

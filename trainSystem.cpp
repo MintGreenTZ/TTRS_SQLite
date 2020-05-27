@@ -24,7 +24,7 @@ trainSystem::trainSystem(database *_c, std::string _tableName, querySystem *_que
 		"prices varchar(4096)," // stationNum - 1				0|contents
 		"startTime varchar(255),"
 		"travelTimes varchar(4096)," // stationNum - 1			0|contents
-		"stopoverTimes varchar(4096)," // stationNum - 2		0|contents|0
+		"stopOverTimes varchar(4096)," // stationNum - 2		0|contents|0
 		"saleDate varchar(255),"
 		"type varchar(1),"
 		"released boolean );";
@@ -37,16 +37,19 @@ trainSystem::trainSystem(database *_c, std::string _tableName, querySystem *_que
 
 int trainSystem::add_train(std::string trainID, std::string stationNum, std::string seatNum, std::string stations, 
 			std::string prices, std::string startTime, std::string travelTimes, 
-			std::string stopoverTimes, std::string saleDate, std::string type) {
+			std::string stopOverTimes, std::string saleDate, std::string type) {
 	std::ostringstream q;
 	prices = "0|" + prices;
 	travelTimes = "0|" + travelTimes;
-	stopoverTimes = "0|" + stopoverTimes + "|0";
+	if (stationNum == "2")
+		stopOverTimes = "0|0";
+	else
+		stopOverTimes = "0|" + stopOverTimes + "|0";
 
-	q << "INSERT INTO " << tableName << " (trainID,stationNum,stations,seatNum,prices,startTime,travelTimes,stopoverTimes,saleDate,type,released) "
+	q << "INSERT INTO " << tableName << " (trainID,stationNum,stations,seatNum,prices,startTime,travelTimes,stopOverTimes,saleDate,type,released) "
 		<< "VALUES (\'" << trainID << "\', " << stationNum << ",\'" << stations << "\', " << seatNum
 		<< ", \'" << prices << "\', \'" << startTime << "\', \'" << travelTimes << "\', \'" 
-		<< stopoverTimes << "\', \'" << saleDate << "\', \'" << type << "\'," << "false);";
+		<< stopOverTimes << "\', \'" << saleDate << "\', \'" << type << "\'," << "false);";
 	return c -> executeTrans(q.str());
 }
 
@@ -64,7 +67,7 @@ std::pair<int, std::string> trainSystem::query_train(std::string trainID, std::s
 	std::vector<std::string> stations = arrayParser<std::string>::parse(info.second[0][corres["stations"]].as<std::string>());
 	std::vector<int> prices = arrayParser<int>::parse(info.second[0][corres["prices"]].as<std::string>());
 	std::vector<int> travelTimes = arrayParser<int>::parse(info.second[0][corres["travelTimes"]].as<std::string>());
-	std::vector<int> stopoverTimes = arrayParser<int>::parse(info.second[0][corres["stopoverTimes"]].as<std::string>());
+	std::vector<int> stopOverTimes = arrayParser<int>::parse(info.second[0][corres["stopOverTimes"]].as<std::string>());
 	std::string startTime = info.second[0][corres["startTime"]].as<std::string>();
 	
 	moment curTime(date, startTime);
@@ -74,14 +77,14 @@ std::pair<int, std::string> trainSystem::query_train(std::string trainID, std::s
 	for (int i = 1; i < stationNum - 1; i++) {
 		curTime += travelTimes[i];
 		q << stations[i] << " " << curTime.toString() << " -> ";
-		curTime += stopoverTimes[i];
+		curTime += stopOverTimes[i];
 		price += prices[i];
 		q << curTime.toString() << " " << price << "\n";
 	}
 
 	curTime += travelTimes[stationNum - 1];
 	price += prices[stationNum - 1];
-	q << stations[stationNum - 1] << " " << curTime.toString() << " -> " << moment::emptyMoment << " " << price << "\n";
+	q << stations[stationNum - 1] << " " << curTime.toString() << " -> " << moment::emptyMoment << " " << price;
 	
 	return std::make_pair(0, q.str());
 }
@@ -132,16 +135,22 @@ std::pair<std::string, std::string> trainSystem::findTime(std::string trainID, s
 	auto info = getTrainInfo(trainID);
 	std::vector<std::string> stations = arrayParser<std::string>::parse(info.second[0][corres["stations"]].as<std::string>());
 	std::vector<int> travelTimes = arrayParser<int>::parse(info.second[0][corres["travelTimes"]].as<std::string>());
-	std::vector<int> stopoverTimes = arrayParser<int>::parse(info.second[0][corres["stopoverTimes"]].as<std::string>());
+	std::vector<int> stopOverTimes = arrayParser<int>::parse(info.second[0][corres["stopOverTimes"]].as<std::string>());
 	std::string startTime = info.second[0][corres["startTime"]].as<std::string>();
 	int stationNum = info.second[0][corres["stationNum"]].as<int>();
 	moment curTime(date, startTime);
+	//std::cout << info.second[0][corres["travelTimes"]].as<std::string>() << std::endl;
+	//std::cout << info.second[0][corres["stopOverTimes"]].as<std::string>() << std::endl;
 	std::pair<std::string, std::string> ret;
 	for (int i = 1; i < stationNum; i++) {
-		if (stations[i - 1] == FROM) ret.first = curTime.toString();
+		if (stations[i - 1] == FROM) {
+			curTime.setDate(date);	// the day customer need is start date
+			ret.first = curTime.toString();
+		}
 		curTime += travelTimes[i];
 		if (stations[i] == TO) ret.second = curTime.toString();
-		curTime += stopoverTimes[i];
+		curTime += stopOverTimes[i];
+
 	}
 	return ret;
 }

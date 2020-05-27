@@ -38,6 +38,7 @@ public:
 		hour += minute / 60; minute %= 60;
 		day += hour / 24; hour %= 24;
 		while (day > duration[month]) day -= duration[month], month += 1;
+		//std::cout << "month " << month << " day " << day << std::endl;
 		return twoBit(month) + "-" + twoBit(day) + " " + twoBit(hour) + ":" + twoBit(minute);
 	}
 
@@ -52,6 +53,8 @@ public:
 
 	moment operator +(int dminute) {
 		moment ret(month, day, hour, minute);
+
+		//std::cout << "plus " << dminute << std::endl;
 
 		ret.minute += dminute;
 
@@ -73,6 +76,11 @@ public:
 
 	void operator +=(int dminute) {
 		*this = *this + dminute;
+	}
+
+	void setDate(std::string date) {
+		month = atoi(date.substr(0, 2).c_str());
+		day = atoi(date.substr(3, 2).c_str());
 	}
 };
 
