@@ -37,6 +37,8 @@ private:
 public:
     userSystem(database *_c, std::string _tableName);
 
+    void clear();
+    
     int addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege);
 
     int login(std::string username, std::string password);

@@ -40,7 +40,7 @@ int main() {
     std::string c;
 	int cnt = 0;
     while (getline(std::cin, c) /*&& ++cnt <= 800*/) {
-    	//std::cout << c << std::endl;
+    	// std::cout << c << std::endl;
         auto t = parser::parse(c);
         if (t.first == "") break;
 
@@ -90,12 +90,14 @@ int main() {
 			case 10: //query_ticket
 				parser::replaceByDefault(args["p"], "time");
 				res = query -> query_ticket(args["s"], args["t"], args["d"], args["p"]);
-				std::cout << res.second << std::endl;
+				if (res.second != "") std::cout << res.second << std::endl;
+				else std::cout << res.first << std::endl;
 				break;
 			case 11: //query_transfer
 				parser::replaceByDefault(args["p"], "time");
-				res = query -> query_ticket(args["s"], args["t"], args["d"], args["p"]);
-				std::cout << res.second << std::endl;
+				res = query -> query_transfer(args["s"], args["t"], args["d"], args["p"]);
+				if (res.second != "") std::cout << res.second << std::endl;
+				else std::cout << res.first << std::endl;
 				break;
 			case 12: //buy_ticket
 				parser::replaceByDefault(args["q"], "false");
@@ -116,6 +118,7 @@ int main() {
 				break;
 			case 16:
 				std::cout << "bye" << std::endl;
+				user -> clear();
 				break;
             default:
                 std::cerr << "Unknown command: " << t.first << std::endl;

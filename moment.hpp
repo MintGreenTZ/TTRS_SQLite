@@ -36,9 +36,8 @@ public:
 
 	std::string toString() {
 		hour += minute / 60; minute %= 60;
-		day += hour / 24; hour %= 24;
+		day += hour / 24; hour %= 24;		
 		while (day > duration[month]) day -= duration[month], month += 1;
-		//std::cout << "month " << month << " day " << day << std::endl;
 		return twoBit(month) + "-" + twoBit(day) + " " + twoBit(hour) + ":" + twoBit(minute);
 	}
 
@@ -50,7 +49,7 @@ public:
 		//Used for calculating difference between two events in terms of day
 		return durationSum[month - 1] + (day - 1);
 	}
-
+	
 	moment operator +(int dminute) {
 		moment ret(month, day, hour, minute);
 

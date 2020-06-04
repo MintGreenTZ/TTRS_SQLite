@@ -26,6 +26,7 @@ private:
 
 private:
 	std::vector<std::string> intersection(std::vector<std::string> a, std::vector<std::string> b);
+	std::string retDate;
 
 public:
 	querySystem(database *_c);

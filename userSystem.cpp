@@ -56,6 +56,10 @@ userSystem::userSystem(database *_c, std::string _tableName) : c(_c), tableName(
     init = checkFirst();        
 }
 
+void userSystem::clear() {
+    curUsers.clear();
+}
+
 int userSystem::addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege) {
     if (!init && getPrivilege(cusername) < std::stoi(privilege)) return -1;
     std::ostringstream q; 
@@ -83,6 +87,7 @@ int userSystem::logout(std::string username) {
 }
 
 std::pair<int, std::string> userSystem::query_profile(std::string cusername, std::string username) {
+    // std::cout << curUsers.size() << std::endl;
     if (!checkUser(cusername)) return std::make_pair(-1, "");
     if (getPrivilege(cusername) <= getPrivilege(username) && cusername != username) return std::make_pair(-1, "");
 

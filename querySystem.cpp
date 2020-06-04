@@ -69,18 +69,21 @@ std::pair<int, std::string> querySystem::buy_ticket (std::string userName, std::
             t = i;
             break;
         }
-        if (s == -1) curMin +stopOverTimes[i];
+        if (s == -1) curMin += stopOverTimes[i];
     }
 	if (s == -1 || t == -1) return std::make_pair(-1, "");
     s++, t++;
 
     if (moment(date,"xx:xx").toDay() - curMin.toDay() < 0) return std::make_pair(-1, "");
 
+    // std::cout << moment(date, "xx:xx").toString() << " " << curMin.toString() << " " << moment(date,"xx:xx").toDay() - curMin.toDay() << std::endl;
+
     int rem = getMinTicket(trainId, moment(date,"xx:xx").toDay() - curMin.toDay(), s, t);
     if (!isBuy || rem >= num) {
         t -= 1;
         auto ticket = getTicket(trainId, moment(date,"xx:xx").toDay() - curMin.toDay());
         std::ostringstream sql;
+        // std::cout << moment(date,"xx:xx").toString() << " " << curMin.toString() << std::endl;
         sql << "UPDATE ticketInfo SET ticketNum[" << moment(date,"xx:xx").toDay() - curMin.toDay() + 1 << ":" << moment(date,"xx:xx").toDay() - curMin.toDay() + 1
             << "][" << s << ":" << t << "]=\'{";
         for (int i = s; i <= t; i++) sql << ticket[i] - (isBuy ? 1 : -1) * num << (i != t ? "," : "");
@@ -145,7 +148,7 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
 //int is useless, just put all the output in string
 std::pair<int, std::string> querySystem::query_ticket(std::string start, std::string end, std::string date, std::string mode, bool bestOnly) {
     auto trainIds = intersection(trainsys -> findTrainId(start), trainsys -> findTrainId(end));
-    // std::cout << trainIds.size() << " " << trainIds[0] << std::endl;
+    // std::cout << "DEBUG: " << trainIds.size() << " " << trainIds[0] << std::endl;
 
     std::vector<std::pair<int, std::string>> allTrain;
 
@@ -160,6 +163,10 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
         moment curMin(sale[0], info[trainSystem::corres["startTime"]].as<std::string>());
         moment curMax(sale[1], info[trainSystem::corres["startTime"]].as<std::string>());
         moment t1, t1_max, t2;
+        bool flg1 = false, flg2 = false;
+
+        // std::cout << "A" << " " << stations.size() << " " << travelTimes.size() << " " << prices.size() << std::endl;
+        // std::cout << trainId << " " << start << " " << end << std::endl;
 
         int price = 0, t1s, t2s;
         for (int i = 0; i < stations.size(); i++) {
@@ -170,20 +177,27 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
             if (stations[i] == end) {
                 t2 = curMin;
                 t2s = i;
+                flg2 = true;
                 break;
             }	
+        
             if (stations[i] == start) {
                 t1 = curMin + stopOverTimes[i];
                 t1_max = curMax + stopOverTimes[i];
                 t1s = i;
                 price = 0;
+                flg1 = true;
             }
+
             curMin += stopOverTimes[i];
             curMax += stopOverTimes[i];
         }
-        // std::cout << t1.toString() << " " << t2.toString() << std::endl;
+        if (!flg1 || !flg2) continue;
+        
+        int daysElapsed = moment(date, "xx:xx").toDay() - t1.toDay();	
 
-        int daysElapsed = moment(date, "xx:xx").toDay() - t1.toDay();			
+        // std::cout << moment(date, "xx:xx").toString() << " " <<  t1.toString() << " " << daysElapsed << std::endl;
+		
         if (moment(date, "xx:xx").toDay() >= t1.toDay() && moment(date, "xx:xx").toDay() <= t1_max.toDay()) {
             //transform to requesting day
             t1.day += daysElapsed;
@@ -193,9 +207,11 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
             // std::cout << "MIN TICKET: " << ticketNum << " " << t1s << " " << t2s << std::endl;
             std::ostringstream tmp;
             tmp << trainId << " " << start << " " << t1.toString() << " -> " << end << " " << t2.toString() << " " << price << " " << ticketNum << "\n";
-            allTrain.push_back(std::make_pair(mode == "cost" ? price : t1.toInt(), tmp.str()));
+            allTrain.push_back(std::make_pair(mode == "cost" ? price : t2.toInt() - t1.toInt(), tmp.str()));
         }
     }
+    if (allTrain.size() == 0) return std::make_pair(0, "");
+
     sort(allTrain.begin(), allTrain.end());
     if (!bestOnly) {
         std::ostringstream ret;
@@ -203,6 +219,8 @@ std::pair<int, std::string> querySystem::query_ticket(std::string start, std::st
         for (auto t: allTrain) ret << t.second;
         return std::make_pair(0, ret.str().substr(0, ret.str().size() - 1));
     } else {
+        auto p1 = allTrain[0].second.find(" ", allTrain[0].second.find("->") + 3);
+        retDate = allTrain[0].second.substr(p1 + 1, 11); 
         return std::make_pair(0, allTrain[0].second);
     }
 }
@@ -219,13 +237,13 @@ std::pair<std::vector<std::string>, std::vector<int>> querySystem::getAllStation
         bool flg = false;
         int cost = 0;
         for (int i = 0; i < stations.size(); i++) {
-            cost += travelTimes[i];
             if (flg) {
+                cost += travelTimes[i];
                 ret1.push_back(stations[i]);
                 ret2.push_back(cost);
+                cost += stopOverTimes[i];
             }
             if (stations[i] == start) flg = true;
-            cost += stopOverTimes[i];
         }
     }
     return std::make_pair(ret1, ret2);
@@ -259,7 +277,11 @@ std::pair<std::vector<std::string>, std::vector<int>> querySystem::getAllStation
 std::pair<int, std::string> querySystem::query_transfer(std::string start, std::string end, std::string date, std::string mode) {
     auto s1 = getAllStationFrom(trainsys -> findTrainId(start), start);
     auto s2 = getAllStationUntil(trainsys -> findTrainId(end), end);
+    if (!s1.second.size() || !s2.second.size()) return std::make_pair(0, "");
+
     auto common = intersection(s1.first, s2.first);
+    if (!common.size()) return std::make_pair(0, "");
+
     int minCost = INT_MAX;
     std::string minStation;
     for (auto t: common) {
@@ -269,7 +291,8 @@ std::pair<int, std::string> querySystem::query_transfer(std::string start, std::
             minStation = t;
         }
     }
+
     auto ret1 = query_ticket(start, minStation, date, "time", true);
-    auto ret2 = query_ticket(minStation, end, date, "time", true);
+    auto ret2 = query_ticket(minStation, end, retDate, "time", true);
     return std::make_pair(0, ret1.second + "\n" + ret2.second);
 }
