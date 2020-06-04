@@ -161,16 +161,18 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 	int cnt = 1;
 	for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++, cnt++) {
 		if (cnt == n) {
-			if (it[corres["status"]].as<int>() == success) {
+			if (it[corres["status"]].as<int>() == success || it[corres["status"]].as<int>() == pending) {
 				std::ostringstream q;
 				q << "UPDATE " << tableName << " SET status = 2 WHERE userName = \'" << userName
 				<< "\' AND orderCnt = " << it[corres["orderCnt"]].as<int>() << ";";
 				c -> executeNonTrans(q.str());
 				// std::cout << "[DATE] " << it[corres["date"]].as<std::string>() << std::endl;
-				query -> add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
-					it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
-					it[corres["toSite"]].as<std::string>());
-				scanQueue(it[corres["trainID"]].as<std::string>());
+				if (it[corres["status"]].as<int>() == success) {
+					query->add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
+						it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
+						it[corres["toSite"]].as<std::string>());
+					scanQueue(it[corres["trainID"]].as<std::string>());
+				}
 				// std::cout << "[Refund end]" << std::endl;
 				return 0;
 			} else

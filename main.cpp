@@ -28,8 +28,8 @@ const std::string moment::emptyMoment = "xx-xx xx:xx";
 
 // Compile command : g++ -std=c++17 *.cpp -lpqxx -lpq -o main
 int main() {
-    freopen("./sample_in.txt", "r", stdin);
-	freopen("./sample_my_out.txt", "w", stdout);
+    freopen("./in.txt", "r", stdin);
+	freopen("./out.txt", "w", stdout);
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
 	querySystem *query = new querySystem(db);
