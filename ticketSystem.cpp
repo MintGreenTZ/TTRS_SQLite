@@ -48,13 +48,28 @@ void ticketSystem::scanQueue(std::string trainID) {
 	}
 	std::sort(allOrder.begin(), allOrder.end(),[](auto a, auto b) -> bool { return a.first < b.first; });
 
+	bool alterSuccess = false;
+	std::vector<std::pair<int, std::string> > result;
+	std::pair<int, std::string> res;
+
 	for (auto it = allOrder.begin(); it != allOrder.end(); it++) {
-		if (query -> buy_ticket(it->second.userName, it->second.trainID, it->second.date, 
-				it->second.num, it->second.fromSite, it->second.toSite).first != -1) {
+		res = query->buy_ticket(it->second.userName, it->second.trainID, it->second.date,
+			it->second.num, it->second.fromSite, it->second.toSite, "false");
+		result.push_back(res);
+		if (res.first != -1) {
 			std::ostringstream q;
 			q << "UPDATE " << tableName << " SET status = 0 WHERE userName = \'"
 				<< it->second.userName << "\' AND orderCnt = " << it->first << ";";
 			c -> executeTrans(q.str());
+			std::cout << "Alternate " << it->second.userName << " " << it->second.trainID << " " << it->second.date << " " << it->second.num << " " << it->second.fromSite << " " << it->second.toSite << std::endl;
+			alterSuccess = true;
+		}
+	}
+	if (alterSuccess) {
+		auto resultIt = result.begin();
+		for (auto it = allOrder.begin(); it != allOrder.end(); it++, resultIt++) {
+			std::cout << "List " << it->second.userName << " " << it->second.trainID << " " << it->second.date << " " << it->second.num << " " << it->second.fromSite << " " << it->second.toSite << std::endl;
+			std::cout << resultIt->first << " " << resultIt->second << std::endl;
 		}
 	}
 }
@@ -123,7 +138,7 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 }
 
 std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
-	if (!user->checkUser(userName)) return std::make_pair(-1, "");
+	if (!user->checkUser(userName)) return std::make_pair(0, "-1\n");
 
 	auto info = getTicketInfo(userName);
 	std::vector<std::pair<int, std::string>> allOrder;
@@ -158,6 +173,7 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 }
 
 int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
+	//if (userName == "Shining") std::cout << "Shining is refunding!" << std::endl;
 	if (!user -> checkUser(userName)) return -1;
 	
 	int n = std::stoi(string_n);

@@ -44,6 +44,7 @@ public:
 	int buy_ticket (std::string userName, std::string trainID, std::string date, std::string num,
 			std::string FROM, std::string TO, std::string queue);
 	
+	//int is useless, just put all the output in string
 	std::pair<int, std::string> query_order(std::string userName);
 
 	int refund_ticket(std::string userName, std::string string_n);
