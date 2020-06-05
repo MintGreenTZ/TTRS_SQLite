@@ -47,6 +47,7 @@ public:
 
 	int toDay() {
 		//Used for calculating difference between two events in terms of day
+		toString();
 		return durationSum[month - 1] + (day - 1);
 	}
 	

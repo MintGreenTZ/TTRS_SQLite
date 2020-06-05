@@ -6,6 +6,7 @@
 
 class querySystem;
 class trainSystem;
+class userSystem;
 
 class ticketSystem {
 public:
@@ -20,6 +21,8 @@ private:
 	std::string tableName;
 	querySystem *query;
 	trainSystem *train;
+	userSystem *user;
+
 	int orderCnt;
 private:
 	std::pair<int, pqxx::result> getTicketInfo(std::string userName);
@@ -34,7 +37,7 @@ private:
 
 	bool checkFirst();
 public:
-	ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train);
+	ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train, userSystem *_user);
 
 	~ticketSystem();
 	

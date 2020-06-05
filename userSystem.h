@@ -25,6 +25,7 @@ private:
 
     int delCurUser(std::string username);
 
+public:
     bool checkUser(std::string username);
 
 private:

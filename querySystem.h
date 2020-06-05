@@ -37,7 +37,7 @@ public:
 	// saleDate eg. 06-01|08-17, success ensured
 	void init_ticket (std::string trainID, std::string saleDate, int stationNum, std::string ticketNum);
 	
-	void add_ticket(std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO);
+	bool add_ticket(std::string userName, std::string trainId, std::string date, std::string str_num, std::string FROM, std::string TO);
 
 	// return ticket_num of <trainID> on <date>, used by query_train
 	std::vector<int> query_ticket(std::string trainID, std::string date);

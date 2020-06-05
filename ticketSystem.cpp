@@ -1,7 +1,8 @@
 #include "querySystem.h"
 #include "trainSystem.h"
 #include "ticketSystem.h"
-	
+#include "userSystem.h"
+
 std::pair<int, pqxx::result> ticketSystem::getTicketInfo(std::string userName) {
 	std::ostringstream q;
 	q << "SELECT * FROM " << tableName << " WHERE userName = \'" << userName << "\';";
@@ -64,8 +65,8 @@ bool ticketSystem::checkFirst() {
 	return ret.second.size() == 0;
 }
 
-ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train) :
-		c(_c), cnt(_c), tableName(_tableName), query(_query), train(_train){
+ticketSystem::ticketSystem(database *_c, std::string _tableName, querySystem *_query, trainSystem *_train, userSystem *_user) :
+		c(_c), cnt(_c), tableName(_tableName), query(_query), train(_train), user(_user) {
 	std::string sql = "CREATE TABLE IF NOT EXISTS tickettable("
 		"userName varchar(255),"
 		"orderCnt int," 
@@ -122,6 +123,8 @@ int ticketSystem::buy_ticket (std::string userName, std::string trainID, std::st
 }
 
 std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
+	if (!user->checkUser(userName)) return std::make_pair(-1, "");
+
 	auto info = getTicketInfo(userName);
 	std::vector<std::pair<int, std::string>> allOrder;
 
@@ -155,10 +158,12 @@ std::pair<int, std::string> ticketSystem::query_order(std::string userName) {
 }
 
 int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
-	// std::cout << "[Refund begin]" << std::endl;
+	if (!user -> checkUser(userName)) return -1;
+	
 	int n = std::stoi(string_n);
 	auto info = getTicketInfo(userName);
 	int cnt = 1;
+	n = info.second.size() - n + 1;
 	for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++, cnt++) {
 		if (cnt == n) {
 			if (it[corres["status"]].as<int>() == success || it[corres["status"]].as<int>() == pending) {
@@ -168,9 +173,10 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 				c -> executeNonTrans(q.str());
 				// std::cout << "[DATE] " << it[corres["date"]].as<std::string>() << std::endl;
 				if (it[corres["status"]].as<int>() == success) {
-					query->add_ticket(it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
+					bool ret = query->add_ticket(userName, it[corres["trainID"]].as<std::string>(), it[corres["date"]].as<std::string>(),
 						it[corres["num"]].as<std::string>(), it[corres["fromSite"]].as<std::string>(),
 						it[corres["toSite"]].as<std::string>());
+					if (!ret) return -1;
 					scanQueue(it[corres["trainID"]].as<std::string>());
 				}
 				// std::cout << "[Refund end]" << std::endl;

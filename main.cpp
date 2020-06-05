@@ -34,7 +34,7 @@ int main() {
     userSystem *user = new userSystem(db, "usertable");
 	querySystem *query = new querySystem(db);
 	trainSystem *train = new trainSystem(db, "traintable", query);
-	ticketSystem *ticket = new ticketSystem(db, "tickettable", query, train);
+	ticketSystem *ticket = new ticketSystem(db, "tickettable", query, train, user);
 	query -> init_system(ticket, train, user);
 
     std::string c;
@@ -109,7 +109,8 @@ int main() {
 				break;
 			case 13: //query_order
 				res = ticket -> query_order(args["u"]);
-				std::cout << res.second;
+				if (res.second != "") std::cout << res.second << std::endl;
+				else std::cout << res.first << std::endl;
 				break;
 			case 14: //refund_ticket
 				parser::replaceByDefault(args["n"], "1");
