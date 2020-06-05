@@ -53,7 +53,7 @@ void ticketSystem::scanQueue(std::string trainID) {
 	std::pair<int, std::string> res;
 
 	for (auto it = allOrder.begin(); it != allOrder.end(); it++) {
-		res = query->buy_ticket(it->second.userName, it->second.trainID, it->second.date,
+		res = query->buy_ticket("", it->second.trainID, it->second.date,
 			it->second.num, it->second.fromSite, it->second.toSite, "false");
 		result.push_back(res);
 		if (res.first != -1) {

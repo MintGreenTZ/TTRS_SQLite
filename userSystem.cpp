@@ -20,6 +20,7 @@ int userSystem::delCurUser(std::string username) {
 }
 
 bool userSystem::checkUser(std::string username) {
+    if (username == "") return true;
     return curUsers.find(username) != curUsers.end();
 }
 
