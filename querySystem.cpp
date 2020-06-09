@@ -153,6 +153,7 @@ int querySystem::getMinTicket(std::string trainId, int day, int s, int t) {
 std::pair<int, std::string> querySystem::query_ticket(std::string start, std::string end, std::string date, std::string mode, bool bestOnly) {
     auto trainIds = intersection(trainsys -> findTrainId(start), trainsys -> findTrainId(end));
     // std::cout << "DEBUG: " << trainIds.size() << " " << trainIds[0] << std::endl;
+    retDate = "";
 
     std::vector<std::pair<int, std::string>> allTrain;
 
@@ -295,8 +296,8 @@ std::pair<int, std::string> querySystem::query_transfer(std::string start, std::
             minStation = t;
         }
     }
-
     auto ret1 = query_ticket(start, minStation, date, "time", true);
+    if (ret1.second.size() == 0) return std::make_pair(0, "");
     moment date2(retDate.substr(0, 5), "xx:xx");
     auto ret2 = query_ticket(minStation, end, date2.toString().substr(0, 5), "time", true);
     while (ret2.second == "") {
@@ -304,5 +305,6 @@ std::pair<int, std::string> querySystem::query_transfer(std::string start, std::
         if (date2.toDay() > 365) break;
         ret2 = query_ticket(minStation, end, date2.toString().substr(0, 5), "time", true);
     }
+    if (ret2.second.size() == 0) return std::make_pair(0, "");
     return std::make_pair(0, ret1.second + ret2.second.substr(0, ret2.second.size() - 1));
 }

@@ -31,8 +31,8 @@ std::string aim = "Beehunter";
 
 // Compile command : g++ -std=c++17 *.cpp -lpqxx -lpq -o main
 int main() {
-    freopen("./in.txt", "r", stdin);
-	freopen("./out.txt", "w", stdout);
+    freopen("./my.in", "r", stdin);
+	// freopen("./out.txt", "w", stdout);
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
 	querySystem *query = new querySystem(db);

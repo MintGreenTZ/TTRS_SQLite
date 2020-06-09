@@ -1,0 +1,6 @@
+add_user -c Cutter -u Gitano -p qSM_e!rw3Xa0 -n 远山 -m place.of.the@old.ones -g 4
+login -u Gitano -p qSM_e!rw3Xa0
+query_profile -c Gitano -u Gitano
+modify_profile -c Gitano -u Gitano -p jk_fKULdm3FN!XfAY -m individual@nations.become -g 4
+query_profile -c Gitano -u Gitano
+exit
