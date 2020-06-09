@@ -62,7 +62,7 @@ void userSystem::clear() {
 }
 
 int userSystem::addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege) {
-    if ((!init) && getPrivilege(cusername) <= std::stoi(privilege)) return -1;
+    if ((!init) && ((!checkUser(cusername) || getPrivilege(cusername) <= std::stoi(privilege)))) return -1;
     std::ostringstream q; 
     q << "INSERT INTO " << tableName << " (username,password,name,mailAddr,privilege) "
         << "VALUES (\'" << username << "\', \'" << password << "\', \'" << name << "\', \'" << mailAddr << "\', " << privilege
