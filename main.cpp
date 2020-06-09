@@ -32,7 +32,7 @@ std::string aim = "Beehunter";
 // Compile command : g++ -std=c++17 *.cpp -lpqxx -lpq -o main
 int main() {
     freopen("./in.txt", "r", stdin);
-	freopen("./out.txt", "w", stdout);
+	freopen("./ans.txt", "w", stdout);
     database *db = new database();
     userSystem *user = new userSystem(db, "usertable");
 	querySystem *query = new querySystem(db);
@@ -43,7 +43,7 @@ int main() {
     std::string c;
 	int cnt = 0;
     while (getline(std::cin, c) /*&& ++cnt <= 50000*/) {
-    	// std::cout << c << std::endl;
+    	//std::cout << c << std::endl;
         auto t = parser::parse(c);
         if (t.first == "") break;
 
