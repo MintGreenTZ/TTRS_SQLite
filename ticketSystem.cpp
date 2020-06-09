@@ -3,6 +3,8 @@
 #include "ticketSystem.h"
 #include "userSystem.h"
 
+const bool DEBUG = false;
+
 std::pair<int, pqxx::result> ticketSystem::getTicketInfo(std::string userName) {
 	std::ostringstream q;
 	q << "SELECT * FROM " << tableName << " WHERE userName = \'" << userName << "\';";
@@ -61,11 +63,11 @@ void ticketSystem::scanQueue(std::string trainID) {
 			q << "UPDATE " << tableName << " SET status = 0 WHERE userName = \'"
 				<< it->second.userName << "\' AND orderCnt = " << it->first << ";";
 			c -> executeTrans(q.str());
-			std::cout << "Alternate " << it->second.userName << " " << it->second.trainID << " " << it->second.date << " " << it->second.num << " " << it->second.fromSite << " " << it->second.toSite << std::endl;
+			if (DEBUG) std::cout << "Alternate " << it->second.userName << " " << it->second.trainID << " " << it->second.date << " " << it->second.num << " " << it->second.fromSite << " " << it->second.toSite << std::endl;
 			alterSuccess = true;
 		}
 	}
-	if (alterSuccess) {
+	if (DEBUG && alterSuccess) {
 		auto resultIt = result.begin();
 		for (auto it = allOrder.begin(); it != allOrder.end(); it++, resultIt++) {
 			std::cout << "List " << it->second.userName << " " << it->second.trainID << " " << it->second.date << " " << it->second.num << " " << it->second.fromSite << " " << it->second.toSite << std::endl;
@@ -178,10 +180,33 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 	
 	int n = std::stoi(string_n);
 	auto info = getTicketInfo(userName);
+	/*for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
+		std::ostringstream q;
+		switch (it[corres["status"]].as<int>()) {
+		case success: 	q << "[success] ";	break;
+		case pending: 	q << "[pending] ";	break;
+		case refunded:	q << "[refunded] ";	break;
+		}
+		q << it[corres["trainID"]].as<std::string>() << " ";
+		q << it[corres["fromSite"]].as<std::string>() << " ";
+		q << it[corres["LEAVING_TIME"]].as<std::string>() << " -> ";
+		q << it[corres["toSite"]].as<std::string>() << " ";
+		q << it[corres["ARRIVING_TIME"]].as<std::string>() << " ";
+		q << it[corres["price"]].as<int>() << " ";
+		q << it[corres["num"]].as<int>() << "\n";
+		std::cout << q.str();
+	}*/
+
 	int cnt = 1;
-	n = info.second.size() - n + 1;
-	for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++, cnt++) {
-		if (cnt == n) {
+	std::vector<std::pair<int, int> > allOrder;
+	for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++)
+		allOrder.push_back(std::make_pair<int, int>(-it[corres["orderCnt"]].as<int>(), cnt++));
+	std::sort(allOrder.begin(), allOrder.end());
+
+	cnt = 1;
+	int aim = allOrder[n - 1].second;
+	for (pqxx::result::const_iterator it = info.second.begin(); it != info.second.end(); it++) {
+		if (cnt++ == aim) {
 			if (it[corres["status"]].as<int>() == success || it[corres["status"]].as<int>() == pending) {
 				std::ostringstream q;
 				q << "UPDATE " << tableName << " SET status = 2 WHERE userName = \'" << userName
@@ -197,8 +222,10 @@ int ticketSystem::refund_ticket(std::string userName, std::string string_n) {
 				}
 				// std::cout << "[Refund end]" << std::endl;
 				return 0;
-			} else
+			}
+			else {
 				return -1;
+			}
 		}
 	}
 	return -1;

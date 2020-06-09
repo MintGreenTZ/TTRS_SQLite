@@ -42,7 +42,7 @@ int main() {
 
     std::string c;
 	int cnt = 0;
-    while (getline(std::cin, c) && ++cnt <= 50000) {
+    while (getline(std::cin, c) /*&& ++cnt <= 50000*/) {
     	// std::cout << c << std::endl;
         auto t = parser::parse(c);
         if (t.first == "") break;
