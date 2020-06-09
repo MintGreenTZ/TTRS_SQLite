@@ -62,7 +62,7 @@ void userSystem::clear() {
 }
 
 int userSystem::addUser(std::string cusername, std::string username, std::string password, std::string name, std::string mailAddr, std::string privilege) {
-    if (!init && getPrivilege(cusername) < std::stoi(privilege)) return -1;
+    if ((!init) && getPrivilege(cusername) <= std::stoi(privilege)) return -1;
     std::ostringstream q; 
     q << "INSERT INTO " << tableName << " (username,password,name,mailAddr,privilege) "
         << "VALUES (\'" << username << "\', \'" << password << "\', \'" << name << "\', \'" << mailAddr << "\', " << privilege
@@ -106,7 +106,10 @@ std::pair<int, std::string> userSystem::modify_profile(std::string cusername, st
     if (password != "") v.push_back("password = \'" + password + "\'");
     if (name != "") v.push_back("name = \'" + name + "\'");
     if (mailAddr != "") v.push_back("mailAddr = \'" + mailAddr + "\'");
-    if (privilege != "") v.push_back("privilege = " + privilege);
+    if (privilege != "") {
+        v.push_back("privilege = " + privilege);
+        if (stoi(privilege) >= getPrivilege(cusername)) return std::make_pair(-1, "");
+    }
     std::string s;
     for (auto it = v.begin(); it != v.end(); it++) s += (it != v.begin() ? ", " : "") + *it;
 
